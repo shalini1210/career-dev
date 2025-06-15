@@ -1,502 +1,206 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { FileText, BarChart3, MapPin, Mail, Plus, Download, Eye, Star, LogIn, UserPlus, DollarSign, MessageSquare } from 'lucide-react';
-import { motion } from 'framer-motion';
-import ResumeBuilder from '@/components/ResumeBuilder';
-import ResumeAnalyzer from '@/components/ResumeAnalyzer';
-import RoadmapBuilder from '@/components/RoadmapBuilder';
-import CoverLetterBuilder from '@/components/CoverLetterBuilder';
-import AuthForm from '@/components/AuthForm';
-import Testimonials from '@/components/Testimonials';
-import Footer from '@/components/Footer';
-import DownloadModal from '@/components/DownloadModal';
-import SalaryGuide from '@/components/SalaryGuide';
-import ProjectFeedback from '@/components/ProjectFeedback';
-import MockInterviewer from '@/components/MockInterviewer';
+
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  FileText, 
+  Briefcase, 
+  DollarSign, 
+  TrendingUp,
+  Linkedin,
+  BookOpen,
+  MessageSquare,
+  Download
+} from "lucide-react";
+
+import ResumeBuilder from "@/components/ResumeBuilder";
+import ResumeAnalyzer from "@/components/ResumeAnalyzer";
+import CoverLetterBuilder from "@/components/CoverLetterBuilder";
+import SalaryGuide from "@/components/SalaryGuide";
+import LinkedInOptimizer from "@/components/LinkedInOptimizer";
+import RoadmapBuilder from "@/components/RoadmapBuilder";
+import ProjectFeedback from "@/components/ProjectFeedback";
+import Testimonials from "@/components/Testimonials";
+import Footer from "@/components/Footer";
+
+type ActiveTool = 'resume-builder' | 'resume-analyzer' | 'cover-letter' | 'salary-guide' | 'linkedin-optimizer' | 'roadmap' | 'project-feedback' | null;
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [showDownloadModal, setShowDownloadModal] = useState(false);
-  const [downloadType, setDownloadType] = useState('');
+  const [activeTool, setActiveTool] = useState<ActiveTool>(null);
+
+  if (activeTool) {
+    const renderTool = () => {
+      switch (activeTool) {
+        case 'resume-builder':
+          return <ResumeBuilder />;
+        case 'resume-analyzer':
+          return <ResumeAnalyzer />;
+        case 'cover-letter':
+          return <CoverLetterBuilder />;
+        case 'salary-guide':
+          return <SalaryGuide />;
+        case 'linkedin-optimizer':
+          return <LinkedInOptimizer />;
+        case 'roadmap':
+          return <RoadmapBuilder />;
+        case 'project-feedback':
+          return <ProjectFeedback />;
+        default:
+          return null;
+      }
+    };
+
+    return (
+      <div className="min-h-screen">
+        <div className="p-4">
+          <Button 
+            onClick={() => setActiveTool(null)}
+            variant="outline"
+            className="mb-4"
+          >
+            ← Back to Tools
+          </Button>
+        </div>
+        {renderTool()}
+      </div>
+    );
+  }
 
   const tools = [
     {
-      id: 'resume-builder',
-      title: 'Resume Builder',
-      description: 'Create professional resumes with our modern templates',
+      id: 'resume-builder' as ActiveTool,
+      title: "AI Resume Builder",
+      description: "Create a professional resume with AI assistance",
       icon: FileText,
-      color: 'from-purple-500 via-pink-500 to-red-500',
-      features: ['ATS-Friendly Templates', 'Real-time Preview', 'Multiple Formats']
+      color: "from-blue-500 to-blue-600",
+      hoverColor: "hover:from-blue-600 hover:to-blue-700"
     },
     {
-      id: 'resume-analyzer',
-      title: 'Resume Analyzer',
-      description: 'Get AI-powered insights and improvement suggestions',
-      icon: BarChart3,
-      color: 'from-blue-500 via-cyan-500 to-teal-500',
-      features: ['ATS Score', 'Keyword Analysis', 'Improvement Tips']
+      id: 'resume-analyzer' as ActiveTool,
+      title: "Resume Analyzer",
+      description: "Get AI feedback on your existing resume",
+      icon: TrendingUp,
+      color: "from-green-500 to-green-600",
+      hoverColor: "hover:from-green-600 hover:to-green-700"
     },
     {
-      id: 'mock-interviewer',
-      title: 'Mock Interviewer',
-      description: 'Practice interviews with AI-generated questions for your role',
+      id: 'cover-letter' as ActiveTool,
+      title: "Cover Letter Builder",
+      description: "Generate personalized cover letters",
       icon: MessageSquare,
-      color: 'from-blue-600 via-indigo-600 to-purple-600',
-      features: ['Role-Specific Questions', 'AI Feedback', 'Interview Practice']
+      color: "from-purple-500 to-purple-600",
+      hoverColor: "hover:from-purple-600 hover:to-purple-700"
     },
     {
-      id: 'roadmap-builder',
-      title: 'Career Roadmap',
-      description: 'Plan your career path with visual timelines',
-      icon: MapPin,
-      color: 'from-green-500 via-emerald-500 to-lime-500',
-      features: ['Goal Setting', 'Milestone Tracking', 'Timeline View']
+      id: 'linkedin-optimizer' as ActiveTool,
+      title: "LinkedIn Profile Optimizer",
+      description: "Optimize your LinkedIn profile with AI insights",
+      icon: Linkedin,
+      color: "from-blue-600 to-indigo-600",
+      hoverColor: "hover:from-blue-700 hover:to-indigo-700"
     },
     {
-      id: 'cover-letter',
-      title: 'Cover Letter Builder',
-      description: 'Generate compelling cover letters for any job',
-      icon: Mail,
-      color: 'from-orange-500 via-amber-500 to-yellow-500',
-      features: ['Job-Specific Content', 'AI Writing', 'Professional Templates']
-    },
-    {
-      id: 'salary-guide',
-      title: 'Salary Guide',
-      description: 'Get salary insights and negotiation tips for your role',
+      id: 'salary-guide' as ActiveTool,
+      title: "Salary Guide",
+      description: "Research salary ranges for your target roles",
       icon: DollarSign,
-      color: 'from-green-600 via-blue-600 to-purple-600',
-      features: ['Market Research', 'Negotiation Tips', 'Location-based Data']
+      color: "from-yellow-500 to-orange-500",
+      hoverColor: "hover:from-yellow-600 hover:to-orange-600"
     },
     {
-      id: 'project-feedback',
-      title: 'Project Feedback',
-      description: 'Get AI analysis and feedback on your projects',
-      icon: MessageSquare,
-      color: 'from-indigo-500 via-purple-500 to-pink-500',
-      features: ['AI Analysis', 'Improvement Tips', 'Interview Impression']
+      id: 'roadmap' as ActiveTool,
+      title: "Career Roadmap",
+      description: "Get a personalized career development plan",
+      icon: BookOpen,
+      color: "from-indigo-500 to-purple-500",
+      hoverColor: "hover:from-indigo-600 hover:to-purple-600"
+    },
+    {
+      id: 'project-feedback' as ActiveTool,
+      title: "Project Feedback",
+      description: "Get AI feedback on your portfolio projects",
+      icon: Briefcase,
+      color: "from-teal-500 to-cyan-500",
+      hoverColor: "hover:from-teal-600 hover:to-cyan-600"
     }
   ];
 
-  const handleDownload = (type: string) => {
-    setDownloadType(type);
-    setShowDownloadModal(true);
-  };
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      {/* Hero Section */}
+      <section className="py-20 px-4 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="max-w-4xl mx-auto"
+        >
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+            AI-Powered Career Tools
+          </h1>
+          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            Transform your career with our comprehensive suite of AI-powered tools. 
+            Build resumes, optimize LinkedIn profiles, get salary insights, and accelerate your professional growth.
+          </p>
+        </motion.div>
+      </section>
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.5
-      }
-    }
-  };
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'auth':
-        return <AuthForm onBack={() => setActiveTab('dashboard')} />;
-      case 'resume-builder':
-        return (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
+      {/* Tools Grid */}
+      <section className="py-16 px-4">
+        <div className="max-w-7xl mx-auto">
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-3xl font-bold text-center text-gray-900 mb-12"
           >
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Resume Builder</h1>
-              <Button onClick={() => handleDownload('Resume')} className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 transform hover:scale-105 transition-all duration-200">
-                <Download className="h-4 w-4 mr-2" />
-                Download Resume
-              </Button>
-            </div>
-            <ResumeBuilder />
-          </motion.div>
-        );
-      case 'resume-analyzer':
-        return (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <ResumeAnalyzer />
-          </motion.div>
-        );
-      case 'mock-interviewer':
-        return (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <MockInterviewer />
-          </motion.div>
-        );
-      case 'roadmap-builder':
-        return (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <RoadmapBuilder />
-          </motion.div>
-        );
-      case 'cover-letter':
-        return (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-yellow-600 bg-clip-text text-transparent">Cover Letter Builder</h1>
-              <Button onClick={() => handleDownload('Cover Letter')} className="bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 transform hover:scale-105 transition-all duration-200">
-                <Download className="h-4 w-4 mr-2" />
-                Download Letter
-              </Button>
-            </div>
-            <CoverLetterBuilder />
-          </motion.div>
-        );
-      case 'salary-guide':
-        return (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <SalaryGuide />
-          </motion.div>
-        );
-      case 'project-feedback':
-        return (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <ProjectFeedback />
-          </motion.div>
-        );
-      default:
-        return (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="space-y-8"
-          >
-            {/* Hero Section */}
-            <motion.div
-              variants={itemVariants}
-              className="text-center py-20 bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600 rounded-3xl text-white relative overflow-hidden"
-            >
-              {/* Animated background elements */}
-              <div className="absolute inset-0 opacity-20">
-                <motion.div
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    rotate: [0, 180, 360],
-                  }}
-                  transition={{
-                    duration: 20,
-                    repeat: Infinity,
-                    ease: "linear"
-                  }}
-                  className="absolute top-10 left-10 w-20 h-20 bg-white rounded-full"
-                />
-                <motion.div
-                  animate={{
-                    scale: [1.2, 1, 1.2],
-                    rotate: [360, 180, 0],
-                  }}
-                  transition={{
-                    duration: 15,
-                    repeat: Infinity,
-                    ease: "linear"
-                  }}
-                  className="absolute bottom-10 right-10 w-16 h-16 bg-yellow-300 rounded-full"
-                />
-                <motion.div
-                  animate={{
-                    y: [-20, 20, -20],
-                  }}
-                  transition={{
-                    duration: 8,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                  className="absolute top-1/2 left-1/4 w-8 h-8 bg-green-400 rotate-45"
-                />
-              </div>
-              
-              <div className="relative z-10">
-                <motion.h1
-                  variants={itemVariants}
-                  className="text-5xl md:text-7xl font-bold mb-6"
-                >
-                  Build Your Career
-                </motion.h1>
-                <motion.p
-                  variants={itemVariants}
-                  className="text-xl md:text-2xl opacity-90 mb-8"
-                >
-                  Professional tools to create, analyze, and optimize your job applications
-                </motion.p>
-                <motion.div
-                  variants={itemVariants}
-                  className="flex flex-wrap justify-center gap-4"
-                >
-                  <Button 
-                    onClick={() => setActiveTab('resume-builder')}
-                    size="lg" 
-                    className="bg-white text-purple-600 hover:bg-gray-100 transform hover:scale-105 transition-all duration-200 shadow-lg"
-                  >
-                    <Plus className="mr-2 h-5 w-5" />
-                    Start Building
-                  </Button>
-                  <Button 
-                    onClick={() => setActiveTab('auth')}
-                    size="lg" 
-                    variant="outline" 
-                    className="border-white text-white hover:bg-white hover:text-purple-600 transform hover:scale-105 transition-all duration-200"
-                  >
-                    <UserPlus className="mr-2 h-5 w-5" />
-                    Get Started
-                  </Button>
-                </motion.div>
-              </div>
-            </motion.div>
-
-            {/* Tools Grid */}
-            <motion.div
-              variants={itemVariants}
-              className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
-            >
-              {tools.map((tool, index) => (
+            Choose Your Career Tool
+          </motion.h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {tools.map((tool, index) => {
+              const IconComponent = tool.icon;
+              return (
                 <motion.div
                   key={tool.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ 
-                    scale: 1.05,
-                    y: -5,
-                    transition: { duration: 0.2 }
-                  }}
-                  whileTap={{ scale: 0.95 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
                 >
-                  <Card 
-                    className="group cursor-pointer transition-all duration-300 hover:shadow-2xl overflow-hidden border-0 shadow-lg bg-white/90 backdrop-blur-sm"
-                    onClick={() => setActiveTab(tool.id)}
-                  >
-                    <div className={`h-2 bg-gradient-to-r ${tool.color}`} />
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <motion.div 
-                          className={`p-4 rounded-xl bg-gradient-to-r ${tool.color} text-white shadow-lg`}
-                          whileHover={{ rotate: 360 }}
-                          transition={{ duration: 0.5 }}
-                        >
-                          <tool.icon className="h-8 w-8" />
-                        </motion.div>
-                        <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300">
-                          Launch Tool
-                        </Button>
+                  <Card className="h-full hover:shadow-xl transition-all duration-300 cursor-pointer group"
+                        onClick={() => setActiveTool(tool.id)}>
+                    <CardHeader className="text-center">
+                      <div className={`w-16 h-16 mx-auto rounded-full bg-gradient-to-r ${tool.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                        <IconComponent className="h-8 w-8 text-white" />
                       </div>
+                      <CardTitle className="text-xl font-semibold text-gray-900">
+                        {tool.title}
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">{tool.title}</h3>
-                      <p className="text-gray-600 mb-4 text-lg">{tool.description}</p>
-                      <div className="space-y-3">
-                        {tool.features.map((feature, index) => (
-                          <motion.div
-                            key={index}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            className="flex items-center text-sm"
-                          >
-                            <Star className="h-4 w-4 text-yellow-500 mr-3 fill-current" />
-                            {feature}
-                          </motion.div>
-                        ))}
-                      </div>
+                      <p className="text-gray-600 text-center mb-6">
+                        {tool.description}
+                      </p>
+                      <Button 
+                        className={`w-full bg-gradient-to-r ${tool.color} ${tool.hoverColor} text-white font-medium py-2 px-4 rounded-lg transition-all duration-300`}
+                      >
+                        Get Started
+                      </Button>
                     </CardContent>
                   </Card>
                 </motion.div>
-              ))}
-            </motion.div>
-
-            <Testimonials />
-
-            {/* Stats Section */}
-            <motion.div
-              variants={itemVariants}
-              className="grid md:grid-cols-3 gap-8"
-            >
-              {[
-                { value: "10,000+", label: "Resumes Created", color: "from-purple-500 to-pink-500" },
-                { value: "95%", label: "ATS Pass Rate", color: "from-blue-500 to-cyan-500" },
-                { value: "5,000+", label: "Jobs Landed", color: "from-green-500 to-emerald-500" }
-              ].map((stat, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.2 }}
-                  whileHover={{ scale: 1.05 }}
-                >
-                  <Card className="text-center p-8 border-0 shadow-xl bg-gradient-to-br from-white to-gray-50 hover:shadow-2xl transition-all duration-300">
-                    <motion.div
-                      className={`text-4xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent mb-3`}
-                      animate={{ scale: [1, 1.1, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    >
-                      {stat.value}
-                    </motion.div>
-                    <div className="text-gray-600 text-lg">{stat.label}</div>
-                  </Card>
-                </motion.div>
-              ))}
-            </motion.div>
-          </motion.div>
-        );
-    }
-  };
-
-  if (activeTab === 'auth') {
-    return <AuthForm onBack={() => setActiveTab('dashboard')} />;
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-      {/* Navigation */}
-      <motion.nav
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="bg-white/80 backdrop-blur-md shadow-lg border-b border-purple-100 sticky top-0 z-50"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <motion.div
-              className="flex items-center"
-              whileHover={{ scale: 1.05 }}
-            >
-              <div 
-                className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent cursor-pointer"
-                onClick={() => setActiveTab('dashboard')}
-              >
-                CareerCraft
-              </div>
-            </motion.div>
-            <div className="hidden md:flex space-x-1 overflow-x-auto">
-              {tools.map((tool) => (
-                <motion.div
-                  key={tool.id}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button
-                    variant={activeTab === tool.id ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setActiveTab(tool.id)}
-                    className={`flex items-center whitespace-nowrap ${
-                      activeTab === tool.id 
-                        ? `bg-gradient-to-r ${tool.color} text-white` 
-                        : 'hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100'
-                    }`}
-                  >
-                    <tool.icon className="h-4 w-4 mr-1" />
-                    {tool.title.replace(' Builder', '').replace(' Guide', '').replace(' Interviewer', ' Interview')}
-                  </Button>
-                </motion.div>
-              ))}
-            </div>
-            <div className="flex space-x-2">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setActiveTab('auth')}
-                  className="text-purple-700 hover:text-purple-900 hover:bg-purple-100"
-                >
-                  <LogIn className="h-4 w-4 mr-1" />
-                  Login
-                </Button>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setActiveTab('dashboard')}
-                  className="border-purple-300 text-purple-700 hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100"
-                >
-                  Dashboard
-                </Button>
-              </motion.div>
-            </div>
+              );
+            })}
           </div>
         </div>
-      </motion.nav>
+      </section>
 
-      {/* Mobile Navigation */}
-      <div className="md:hidden bg-white/80 backdrop-blur-md border-b border-purple-100">
-        <div className="flex overflow-x-auto space-x-1 p-2">
-          {tools.map((tool) => (
-            <motion.div
-              key={tool.id}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Button
-                variant={activeTab === tool.id ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setActiveTab(tool.id)}
-                className={`flex items-center whitespace-nowrap ${
-                  activeTab === tool.id 
-                    ? `bg-gradient-to-r ${tool.color} text-white` 
-                    : 'hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100'
-                }`}
-              >
-                <tool.icon className="h-4 w-4 mr-1" />
-                {tool.title.replace(' Builder', '').replace(' Guide', '').replace(' Interviewer', ' Interview')}
-              </Button>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {renderContent()}
-      </main>
-
+      {/* Testimonials */}
+      <Testimonials />
+      
       {/* Footer */}
-      {activeTab === 'dashboard' && <Footer />}
-
-      {/* Download Modal */}
-      <DownloadModal 
-        isOpen={showDownloadModal}
-        onClose={() => setShowDownloadModal(false)}
-        documentType={downloadType}
-      />
+      <Footer />
     </div>
   );
 };
