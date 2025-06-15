@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, TrendingUp, Lightbulb, MapPin, Briefcase, Target, IndianRupee } from 'lucide-react';
+import { DollarSign, TrendingUp, Lightbulb, MapPin, Briefcase, Target, IndianRupee, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SalaryData {
   position: string;
@@ -21,11 +23,13 @@ interface SalaryRange {
   avg: number;
   currency: string;
   symbol: string;
+  tips: string[];
 }
 
 const SalaryGuide = () => {
   const [salaryResult, setSalaryResult] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string>('');
 
   const form = useForm<SalaryData>({
     defaultValues: {
@@ -48,6 +52,14 @@ const SalaryGuide = () => {
     'Sales Manager',
     'Business Analyst',
     'Project Manager',
+    'Mobile App Developer',
+    'AI/ML Engineer',
+    'Cybersecurity Specialist',
+    'Cloud Architect',
+    'Database Administrator',
+    'Quality Assurance Engineer',
+    'Technical Writer',
+    'Scrum Master',
     'Custom Position'
   ];
 
@@ -63,58 +75,19 @@ const SalaryGuide = () => {
     'Switzerland',
     'Singapore',
     'India',
-    'Brazil'
+    'Brazil',
+    'Japan',
+    'South Korea',
+    'Italy',
+    'Spain',
+    'New Zealand',
+    'Ireland',
+    'Denmark',
+    'Norway'
   ];
-
-  const getSalaryData = (position: string, country: string): SalaryRange => {
-    // Realistic salary data with proper currencies
-    const salaryRanges: Record<string, Record<string, SalaryRange>> = {
-      'Software Engineer': {
-        'United States': { min: 85000, max: 160000, avg: 120000, currency: 'USD', symbol: '$' },
-        'Canada': { min: 65000, max: 120000, avg: 90000, currency: 'CAD', symbol: 'C$' },
-        'United Kingdom': { min: 45000, max: 90000, avg: 65000, currency: 'GBP', symbol: '£' },
-        'Germany': { min: 50000, max: 95000, avg: 70000, currency: 'EUR', symbol: '€' },
-        'Australia': { min: 85000, max: 150000, avg: 115000, currency: 'AUD', symbol: 'A$' },
-        'India': { min: 800000, max: 2500000, avg: 1500000, currency: 'INR', symbol: '₹' },
-        'Singapore': { min: 60000, max: 120000, avg: 85000, currency: 'SGD', symbol: 'S$' },
-        'Brazil': { min: 60000, max: 150000, avg: 100000, currency: 'BRL', symbol: 'R$' }
-      },
-      'Product Manager': {
-        'United States': { min: 100000, max: 180000, avg: 140000, currency: 'USD', symbol: '$' },
-        'Canada': { min: 80000, max: 140000, avg: 110000, currency: 'CAD', symbol: 'C$' },
-        'United Kingdom': { min: 55000, max: 110000, avg: 80000, currency: 'GBP', symbol: '£' },
-        'Germany': { min: 65000, max: 120000, avg: 90000, currency: 'EUR', symbol: '€' },
-        'Australia': { min: 100000, max: 170000, avg: 135000, currency: 'AUD', symbol: 'A$' },
-        'India': { min: 1200000, max: 3500000, avg: 2200000, currency: 'INR', symbol: '₹' },
-        'Singapore': { min: 80000, max: 150000, avg: 115000, currency: 'SGD', symbol: 'S$' },
-        'Brazil': { min: 80000, max: 200000, avg: 140000, currency: 'BRL', symbol: 'R$' }
-      },
-      'Data Scientist': {
-        'United States': { min: 95000, max: 170000, avg: 130000, currency: 'USD', symbol: '$' },
-        'Canada': { min: 75000, max: 130000, avg: 100000, currency: 'CAD', symbol: 'C$' },
-        'United Kingdom': { min: 50000, max: 100000, avg: 75000, currency: 'GBP', symbol: '£' },
-        'Germany': { min: 55000, max: 105000, avg: 80000, currency: 'EUR', symbol: '€' },
-        'Australia': { min: 90000, max: 160000, avg: 125000, currency: 'AUD', symbol: 'A$' },
-        'India': { min: 900000, max: 2800000, avg: 1700000, currency: 'INR', symbol: '₹' },
-        'Singapore': { min: 70000, max: 135000, avg: 100000, currency: 'SGD', symbol: 'S$' },
-        'Brazil': { min: 70000, max: 170000, avg: 120000, currency: 'BRL', symbol: 'R$' }
-      }
-    };
-
-    const defaultRange: SalaryRange = { 
-      min: country === 'India' ? 600000 : 50000, 
-      max: country === 'India' ? 2000000 : 120000, 
-      avg: country === 'India' ? 1200000 : 85000,
-      currency: country === 'India' ? 'INR' : 'USD',
-      symbol: country === 'India' ? '₹' : '$'
-    };
-    
-    return salaryRanges[position as keyof typeof salaryRanges]?.[country as keyof any] || defaultRange;
-  };
 
   const formatSalary = (amount: number, currency: string, symbol: string) => {
     if (currency === 'INR') {
-      // Format Indian currency in lakhs
       if (amount >= 100000) {
         return `${symbol}${(amount / 100000).toFixed(1)} LPA`;
       }
@@ -123,34 +96,45 @@ const SalaryGuide = () => {
     return `${symbol}${amount.toLocaleString()}`;
   };
 
-  const getNegotiationTips = (position: string, salaryRange: SalaryRange) => [
-    `Research shows ${position} roles in this market typically range from ${formatSalary(salaryRange.min, salaryRange.currency, salaryRange.symbol)} to ${formatSalary(salaryRange.max, salaryRange.currency, salaryRange.symbol)}`,
-    'Highlight your unique skills and achievements during negotiations',
-    'Consider the total compensation package including benefits, stock options, and PTO',
-    'Practice your negotiation conversation beforehand',
-    'Be prepared to justify your salary expectations with concrete examples',
-    'Know your walk-away point before entering negotiations',
-    salaryRange.currency === 'INR' ? 'In India, also consider variables like joining bonus, retention bonus, and annual increments' : 'Research cost of living adjustments for your specific city/region'
-  ];
+  const fetchSalaryData = async (position: string, country: string): Promise<SalaryRange> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('get-salary-data', {
+        body: { position, country }
+      });
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching salary data:', error);
+      throw new Error('Failed to fetch salary data. Please try again.');
+    }
+  };
 
   const onSubmit = async (data: SalaryData) => {
     setIsLoading(true);
+    setError('');
     
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const finalPosition = data.position === 'Custom Position' ? data.customPosition : data.position;
-    const salaryRange = getSalaryData(finalPosition!, data.country);
-    const tips = getNegotiationTips(finalPosition!, salaryRange);
-    
-    setSalaryResult({
-      position: finalPosition,
-      country: data.country,
-      salaryRange,
-      tips
-    });
-    
-    setIsLoading(false);
+    try {
+      const finalPosition = data.position === 'Custom Position' ? data.customPosition : data.position;
+      
+      if (!finalPosition) {
+        setError('Please specify a position');
+        setIsLoading(false);
+        return;
+      }
+
+      const salaryRange = await fetchSalaryData(finalPosition, data.country);
+      
+      setSalaryResult({
+        position: finalPosition,
+        country: data.country,
+        salaryRange
+      });
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'An error occurred while fetching salary data');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const containerVariants = {
@@ -192,10 +176,10 @@ const SalaryGuide = () => {
     >
       <motion.div variants={itemVariants} className="text-center">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 via-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-          Salary Guide & Negotiation Tips
+          AI-Powered Salary Guide
         </h1>
         <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-          Get personalized salary insights and expert negotiation strategies for your role and location
+          Get real-time salary insights and expert negotiation strategies powered by AI
         </p>
       </motion.div>
 
@@ -214,13 +198,14 @@ const SalaryGuide = () => {
                   <FormField
                     control={form.control}
                     name="position"
+                    rules={{ required: 'Please select a position' }}
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="flex items-center">
                           <Briefcase className="mr-2 h-4 w-4" />
                           Job Position
                         </FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger className="bg-white">
                               <SelectValue placeholder="Select your position" />
@@ -243,11 +228,16 @@ const SalaryGuide = () => {
                     <FormField
                       control={form.control}
                       name="customPosition"
+                      rules={{ required: 'Please enter your position title' }}
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Custom Position Title</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter your position title" {...field} />
+                            <Input 
+                              placeholder="Enter your position title" 
+                              {...field} 
+                              className="bg-white"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -258,13 +248,14 @@ const SalaryGuide = () => {
                   <FormField
                     control={form.control}
                     name="country"
+                    rules={{ required: 'Please select a country' }}
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="flex items-center">
                           <MapPin className="mr-2 h-4 w-4" />
                           Country/Location
                         </FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger className="bg-white">
                               <SelectValue placeholder="Select your country" />
@@ -283,6 +274,13 @@ const SalaryGuide = () => {
                     )}
                   />
 
+                  {error && (
+                    <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg">
+                      <AlertCircle className="h-4 w-4" />
+                      <span className="text-sm">{error}</span>
+                    </div>
+                  )}
+
                   <Button 
                     type="submit" 
                     className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
@@ -299,7 +297,7 @@ const SalaryGuide = () => {
                     ) : (
                       React.createElement(getCurrencyIcon(form.watch('country') === 'India' ? 'INR' : 'USD'), { className: "mr-2 h-4 w-4" })
                     )}
-                    {isLoading ? 'Calculating...' : 'Get Salary Insights'}
+                    {isLoading ? 'Getting AI Insights...' : 'Get AI Salary Insights'}
                   </Button>
                 </form>
               </Form>
@@ -318,7 +316,7 @@ const SalaryGuide = () => {
               <CardHeader>
                 <CardTitle className="flex items-center text-2xl">
                   <TrendingUp className="mr-3 h-8 w-8 text-green-600" />
-                  Salary Insights
+                  AI Salary Insights
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -364,10 +362,10 @@ const SalaryGuide = () => {
                 <div>
                   <h4 className="flex items-center text-lg font-semibold mb-4">
                     <Lightbulb className="mr-2 h-5 w-5 text-yellow-600" />
-                    Negotiation Tips
+                    AI-Generated Negotiation Tips
                   </h4>
                   <div className="space-y-3">
-                    {salaryResult.tips.map((tip: string, index: number) => (
+                    {salaryResult.salaryRange.tips?.map((tip: string, index: number) => (
                       <motion.div
                         key={index}
                         initial={{ opacity: 0, x: -20 }}
