@@ -57,20 +57,10 @@ const Index = () => {
       if (event === 'SIGNED_IN' && session?.user) {
         setShowAuthDialog(false);
         
-        // Track tool usage if there was a pending tool
+        // If there was a pending tool, activate it
         if (pendingTool) {
-          try {
-            await supabase.from('user_tool_usage').insert({
-              user_id: session.user.id,
-              tool_name: pendingTool
-            });
-            setActiveTool(pendingTool);
-            setPendingTool(null);
-          } catch (error) {
-            console.error('Error tracking tool usage:', error);
-            setActiveTool(pendingTool);
-            setPendingTool(null);
-          }
+          setActiveTool(pendingTool);
+          setPendingTool(null);
         }
       }
     });
@@ -90,16 +80,7 @@ const Index = () => {
       return;
     }
 
-    // User is authenticated, track tool usage and activate tool
-    try {
-      await supabase.from('user_tool_usage').insert({
-        user_id: user.id,
-        tool_name: toolId
-      });
-    } catch (error) {
-      console.error('Error tracking tool usage:', error);
-    }
-    
+    // User is authenticated, activate tool directly
     setActiveTool(toolId);
   };
 
@@ -239,7 +220,7 @@ const Index = () => {
       opacity: 1,
       transition: {
         duration: 0.6,
-        ease: "easeInOut"
+        ease: [0.4, 0, 0.6, 1]
       }
     }
   };
@@ -279,7 +260,7 @@ const Index = () => {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: "easeInOut" }}
+            transition={{ duration: 1, ease: [0.4, 0, 0.6, 1] }}
             className="max-w-4xl mx-auto"
           >
             <motion.div
@@ -410,8 +391,11 @@ const Index = () => {
         <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 border-0 bg-transparent">
             <AuthForm 
-              onBack={() => setShowAuthDialog(false)} 
-              toolName={pendingTool || undefined} 
+              onBack={() => setShowAuthDialog(false)}
+              onEmailConfirmation={() => {
+                // Close the dialog when email confirmation message is shown
+                setShowAuthDialog(false);
+              }}
             />
           </DialogContent>
         </Dialog>

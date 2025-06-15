@@ -12,10 +12,10 @@ import { useToast } from '@/hooks/use-toast';
 
 interface AuthFormProps {
   onBack: () => void;
-  toolName?: string;
+  onEmailConfirmation?: () => void;
 }
 
-const AuthForm = ({ onBack, toolName }: AuthFormProps) => {
+const AuthForm = ({ onBack, onEmailConfirmation }: AuthFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -35,7 +35,8 @@ const AuthForm = ({ onBack, toolName }: AuthFormProps) => {
         options: {
           data: {
             full_name: formData.name
-          }
+          },
+          emailRedirectTo: `${window.location.origin}/`
         }
       });
 
@@ -51,8 +52,14 @@ const AuthForm = ({ onBack, toolName }: AuthFormProps) => {
       if (data.user) {
         toast({
           title: "Account created successfully!",
-          description: "You can now use all our tools. Welcome aboard!"
+          description: "Please check your email for a confirmation link to complete your registration.",
+          duration: 6000
         });
+        
+        // Call the callback to close the dialog and show confirmation message
+        if (onEmailConfirmation) {
+          onEmailConfirmation();
+        }
       }
     } catch (error: any) {
       toast({
@@ -178,7 +185,7 @@ const AuthForm = ({ onBack, toolName }: AuthFormProps) => {
                 transition={{ delay: 0.5, type: "spring" }}
               >
                 <CardTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
-                  {toolName ? `Access ${toolName}` : 'Welcome to CareerCraft'}
+                  Welcome to CareerCraft
                 </CardTitle>
               </motion.div>
               <motion.p
@@ -187,7 +194,7 @@ const AuthForm = ({ onBack, toolName }: AuthFormProps) => {
                 transition={{ delay: 0.7 }}
                 className="text-gray-600 text-lg"
               >
-                {toolName ? `Sign in to use ${toolName}` : 'Create your professional future'}
+                Create your professional future
               </motion.p>
             </CardHeader>
             <CardContent className="pb-8">
