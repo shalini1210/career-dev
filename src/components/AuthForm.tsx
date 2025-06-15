@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Mail, Lock, User, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, User, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -29,13 +29,10 @@ const AuthForm = ({ onBack, toolName }: AuthFormProps) => {
     setIsLoading(true);
     
     try {
-      const redirectUrl = `${window.location.origin}/`;
-      
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: redirectUrl,
           data: {
             full_name: formData.name
           }
@@ -52,21 +49,10 @@ const AuthForm = ({ onBack, toolName }: AuthFormProps) => {
       }
 
       if (data.user) {
-        // Track tool usage if toolName is provided
-        if (toolName) {
-          await supabase.from('user_tool_usage').insert({
-            user_id: data.user.id,
-            tool_name: toolName
-          });
-        }
-
         toast({
           title: "Account created successfully!",
-          description: "Please check your email to verify your account."
+          description: "You can now use all our tools. Welcome aboard!"
         });
-        
-        // Redirect to main page
-        window.location.href = '/';
       }
     } catch (error: any) {
       toast({
@@ -99,21 +85,10 @@ const AuthForm = ({ onBack, toolName }: AuthFormProps) => {
       }
 
       if (data.user) {
-        // Track tool usage if toolName is provided
-        if (toolName) {
-          await supabase.from('user_tool_usage').insert({
-            user_id: data.user.id,
-            tool_name: toolName
-          });
-        }
-
         toast({
           title: "Welcome back!",
           description: "You have been signed in successfully."
         });
-        
-        // Redirect to main page
-        window.location.href = '/';
       }
     } catch (error: any) {
       toast({
@@ -184,8 +159,8 @@ const AuthForm = ({ onBack, toolName }: AuthFormProps) => {
             onClick={onBack}
             className="mb-6 text-purple-700 hover:text-purple-900 hover:bg-purple-100 transform hover:scale-105 transition-all duration-200"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Home
+            <X className="h-4 w-4 mr-2" />
+            Close
           </Button>
         </motion.div>
         

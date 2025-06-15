@@ -28,13 +28,14 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 import { User } from "@supabase/supabase-js";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 type ActiveTool = 'resume-builder' | 'resume-analyzer' | 'cover-letter' | 'salary-guide' | 'roadmap' | 'project-feedback' | null;
 
 const Index = () => {
   const [activeTool, setActiveTool] = useState<ActiveTool>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [showAuth, setShowAuth] = useState(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [pendingTool, setPendingTool] = useState<ActiveTool>(null);
 
@@ -54,7 +55,7 @@ const Index = () => {
       setUser(session?.user ?? null);
       
       if (event === 'SIGNED_IN' && session?.user) {
-        setShowAuth(false);
+        setShowAuthDialog(false);
         
         // Track tool usage if there was a pending tool
         if (pendingTool) {
@@ -85,7 +86,7 @@ const Index = () => {
   const handleToolClick = async (toolId: ActiveTool) => {
     if (!user) {
       setPendingTool(toolId);
-      setShowAuth(true);
+      setShowAuthDialog(true);
       return;
     }
 
@@ -112,10 +113,6 @@ const Index = () => {
       console.error('Error signing out:', error);
     }
   };
-
-  if (showAuth) {
-    return <AuthForm onBack={() => setShowAuth(false)} toolName={pendingTool || undefined} />;
-  }
 
   if (activeTool) {
     const renderTool = () => {
@@ -242,7 +239,7 @@ const Index = () => {
       opacity: 1,
       transition: {
         duration: 0.6,
-        ease: [0.4, 0, 0.2, 1]
+        ease: "easeInOut"
       }
     }
   };
@@ -265,7 +262,7 @@ const Index = () => {
                 </Button>
               </div>
             ) : (
-              <Button onClick={() => setShowAuth(true)} variant="outline" size="sm" className="bg-white/50 dark:bg-gray-800/50">
+              <Button onClick={() => setShowAuthDialog(true)} variant="outline" size="sm" className="bg-white/50 dark:bg-gray-800/50">
                 Sign In
               </Button>
             )}
@@ -282,7 +279,7 @@ const Index = () => {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: [0.4, 0, 0.2, 1] }}
+            transition={{ duration: 1, ease: "easeInOut" }}
             className="max-w-4xl mx-auto"
           >
             <motion.div
@@ -339,7 +336,7 @@ const Index = () => {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-4xl font-bold text-center bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent mb-4"
             >
-              {user ? "Choose Your Career Tool" : "Premium Career Tools"}
+              Choose Your Career Tool
             </motion.h2>
             
             <motion.p
@@ -348,7 +345,7 @@ const Index = () => {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="text-center text-gray-600 dark:text-gray-400 mb-12 text-lg"
             >
-              {user ? "Professional tools designed to elevate your career journey" : "Sign up to unlock all features and start your career transformation"}
+              Professional tools designed to elevate your career journey
             </motion.p>
             
             <motion.div
@@ -372,13 +369,6 @@ const Index = () => {
                   >
                     <Card className="h-full hover:shadow-2xl transition-all duration-500 cursor-pointer group bg-white/70 dark:bg-gray-800/70 backdrop-blur-md border-white/40 dark:border-gray-700/40 overflow-hidden relative"
                           onClick={() => handleToolClick(tool.id)}>
-                      {!user && (
-                        <div className="absolute inset-0 bg-black/5 dark:bg-white/5 backdrop-blur-[1px] z-10 flex items-center justify-center">
-                          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">🔒 Sign In Required</p>
-                          </div>
-                        </div>
-                      )}
                       <div className={`h-2 bg-gradient-to-r ${tool.gradient} group-hover:h-3 transition-all duration-300`} />
                       <CardHeader className="text-center relative">
                         <motion.div 
@@ -399,7 +389,7 @@ const Index = () => {
                         <Button 
                           className={`w-full bg-gradient-to-r ${tool.gradient} ${tool.hoverGradient} text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1`}
                         >
-                          {user ? "Get Started" : "Sign In to Access"}
+                          Get Started
                         </Button>
                       </CardContent>
                     </Card>
@@ -415,6 +405,16 @@ const Index = () => {
         
         {/* Footer */}
         <Footer />
+
+        {/* Authentication Dialog */}
+        <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 border-0 bg-transparent">
+            <AuthForm 
+              onBack={() => setShowAuthDialog(false)} 
+              toolName={pendingTool || undefined} 
+            />
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
