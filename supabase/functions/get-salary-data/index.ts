@@ -15,7 +15,14 @@ serve(async (req) => {
   }
 
   try {
+    console.log('API Key available:', !!openAIApiKey);
+    
     const { position, country } = await req.json();
+    console.log('Request received:', { position, country });
+
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key not configured');
+    }
 
     const prompt = `Provide accurate 2024 salary data for a ${position} position in ${country}. 
     
@@ -44,6 +51,8 @@ serve(async (req) => {
     
     Do not include any text outside the JSON object.`;
 
+    console.log('Making OpenAI API call...');
+    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -64,11 +73,44 @@ serve(async (req) => {
       }),
     });
 
+    console.log('OpenAI response status:', response.status);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('OpenAI API error:', errorText);
+      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+    }
+
     const data = await response.json();
+    console.log('OpenAI response data:', data);
+    
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      console.error('Invalid OpenAI response structure:', data);
+      throw new Error('Invalid response from OpenAI API');
+    }
+
     const salaryDataText = data.choices[0].message.content;
+    console.log('Raw salary data text:', salaryDataText);
+    
+    // Clean up the response text to ensure it's valid JSON
+    const cleanedText = salaryDataText.trim().replace(/^```json\s*/, '').replace(/\s*```$/, '');
     
     // Parse the JSON response
-    const salaryData = JSON.parse(salaryDataText);
+    let salaryData;
+    try {
+      salaryData = JSON.parse(cleanedText);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      console.error('Cleaned text:', cleanedText);
+      throw new Error('Failed to parse salary data as JSON');
+    }
+
+    console.log('Parsed salary data:', salaryData);
+
+    // Validate the response structure
+    if (!salaryData.min || !salaryData.max || !salaryData.avg || !salaryData.currency || !salaryData.symbol) {
+      throw new Error('Invalid salary data structure received');
+    }
 
     return new Response(JSON.stringify(salaryData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
