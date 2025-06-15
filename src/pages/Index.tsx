@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, BarChart3, MapPin, Mail, Plus, Download, Eye, Star, LogIn, UserPlus, DollarSign } from 'lucide-react';
+import { FileText, BarChart3, MapPin, Mail, Plus, Download, Eye, Star, LogIn, UserPlus, DollarSign, MessageSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ResumeBuilder from '@/components/ResumeBuilder';
 import ResumeAnalyzer from '@/components/ResumeAnalyzer';
@@ -12,6 +13,7 @@ import Testimonials from '@/components/Testimonials';
 import Footer from '@/components/Footer';
 import DownloadModal from '@/components/DownloadModal';
 import SalaryGuide from '@/components/SalaryGuide';
+import ProjectFeedback from '@/components/ProjectFeedback';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -58,6 +60,14 @@ const Index = () => {
       icon: DollarSign,
       color: 'from-green-600 via-blue-600 to-purple-600',
       features: ['Market Research', 'Negotiation Tips', 'Location-based Data']
+    },
+    {
+      id: 'project-feedback',
+      title: 'Project Feedback',
+      description: 'Get AI analysis and feedback on your projects',
+      icon: MessageSquare,
+      color: 'from-indigo-500 via-purple-500 to-pink-500',
+      features: ['AI Analysis', 'Improvement Tips', 'Interview Impression']
     }
   ];
 
@@ -153,6 +163,16 @@ const Index = () => {
             transition={{ duration: 0.5 }}
           >
             <SalaryGuide />
+          </motion.div>
+        );
+      case 'project-feedback':
+        return (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <ProjectFeedback />
           </motion.div>
         );
       default:
