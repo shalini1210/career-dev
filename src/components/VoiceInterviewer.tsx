@@ -63,11 +63,12 @@ const VoiceInterviewer = () => {
       // Request microphone permission
       await navigator.mediaDevices.getUserMedia({ audio: true });
 
-      // Connect to WebSocket
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const host = window.location.hostname;
-      const wsUrl = `${protocol}//${host === 'localhost' ? 'localhost:54321' : 'YOUR_PROJECT_ID.supabase.co'}/functions/v1/realtime-interview`;
+      // Connect to WebSocket - Fixed URL
+      const wsUrl = window.location.hostname === 'localhost' 
+        ? 'ws://localhost:54321/functions/v1/realtime-interview'
+        : `wss://${window.location.hostname.replace('.lovableproject.com', '')}.supabase.co/functions/v1/realtime-interview`;
       
+      console.log('Connecting to WebSocket:', wsUrl);
       wsRef.current = new WebSocket(wsUrl);
 
       wsRef.current.onopen = () => {
