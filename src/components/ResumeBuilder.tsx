@@ -21,6 +21,18 @@ interface Experience {
   description: string;
 }
 
+interface Project {
+  title: string;
+  description: string;
+  technologies: string;
+  link: string;
+}
+
+interface CustomSection {
+  title: string;
+  content: string;
+}
+
 interface ResumeData {
   fullName: string;
   email: string;
@@ -30,6 +42,8 @@ interface ResumeData {
   skills: string[];
   education: Education[];
   experience: Experience[];
+  projects: Project[];
+  customSections: CustomSection[];
 }
 
 const ResumeBuilder = () => {
@@ -41,7 +55,9 @@ const ResumeBuilder = () => {
     summary: '',
     skills: [''],
     education: [{ degree: '', school: '', year: '' }],
-    experience: [{ position: '', company: '', duration: '', description: '' }]
+    experience: [{ position: '', company: '', duration: '', description: '' }],
+    projects: [{ title: '', description: '', technologies: '', link: '' }],
+    customSections: [{ title: '', content: '' }]
   });
 
   const [showPreview, setShowPreview] = useState(false);
@@ -114,8 +130,53 @@ const ResumeBuilder = () => {
     }));
   };
 
+  const updateProject = (index: number, field: keyof Project, value: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      projects: prev.projects.map((project, i) => 
+        i === index ? { ...project, [field]: value } : project
+      )
+    }));
+  };
+
+  const addProject = () => {
+    setResumeData(prev => ({
+      ...prev,
+      projects: [...prev.projects, { title: '', description: '', technologies: '', link: '' }]
+    }));
+  };
+
+  const removeProject = (index: number) => {
+    setResumeData(prev => ({
+      ...prev,
+      projects: prev.projects.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateCustomSection = (index: number, field: keyof CustomSection, value: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      customSections: prev.customSections.map((section, i) => 
+        i === index ? { ...section, [field]: value } : section
+      )
+    }));
+  };
+
+  const addCustomSection = () => {
+    setResumeData(prev => ({
+      ...prev,
+      customSections: [...prev.customSections, { title: '', content: '' }]
+    }));
+  };
+
+  const removeCustomSection = (index: number) => {
+    setResumeData(prev => ({
+      ...prev,
+      customSections: prev.customSections.filter((_, i) => i !== index)
+    }));
+  };
+
   const generatePDF = () => {
-    // Simulate PDF generation
     alert('PDF would be generated here! This feature is simulated.');
   };
 
@@ -200,6 +261,35 @@ const ResumeBuilder = () => {
               </div>
             )}
 
+            {/* Projects */}
+            {resumeData.projects.filter(project => project.title.trim()).length > 0 && (
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold text-gray-800 mb-2 border-b border-gray-300 pb-1">
+                  Projects
+                </h2>
+                {resumeData.projects.filter(project => project.title.trim()).map((project, index) => (
+                  <div key={index} className="mb-4">
+                    <div className="flex justify-between items-start">
+                      <h3 className="text-lg font-medium text-gray-800">{project.title}</h3>
+                      {project.link && (
+                        <a href={project.link} className="text-blue-600 text-sm hover:underline">
+                          View Project
+                        </a>
+                      )}
+                    </div>
+                    {project.description && (
+                      <p className="text-gray-700 mt-2">{project.description}</p>
+                    )}
+                    {project.technologies && (
+                      <p className="text-sm text-gray-600 mt-1">
+                        <strong>Technologies:</strong> {project.technologies}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* Education */}
             {resumeData.education.filter(edu => edu.degree.trim()).length > 0 && (
               <div className="mb-6">
@@ -219,6 +309,16 @@ const ResumeBuilder = () => {
                 ))}
               </div>
             )}
+
+            {/* Custom Sections */}
+            {resumeData.customSections.filter(section => section.title.trim()).map((section, index) => (
+              <div key={index} className="mb-6">
+                <h2 className="text-xl font-semibold text-gray-800 mb-2 border-b border-gray-300 pb-1">
+                  {section.title}
+                </h2>
+                <div className="text-gray-700 whitespace-pre-line">{section.content}</div>
+              </div>
+            ))}
           </CardContent>
         </Card>
       </div>
@@ -236,7 +336,7 @@ const ResumeBuilder = () => {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Form */}
+        {/* Left Column */}
         <div className="space-y-6">
           {/* Basic Information */}
           <Card>
@@ -330,9 +430,73 @@ const ResumeBuilder = () => {
               ))}
             </CardContent>
           </Card>
+
+          {/* Projects */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex justify-between items-center">
+                Projects
+                <Button onClick={addProject} size="sm" variant="outline">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {resumeData.projects.map((project, index) => (
+                <div key={index} className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium">Project {index + 1}</h4>
+                    {resumeData.projects.length > 1 && (
+                      <Button
+                        onClick={() => removeProject(index)}
+                        size="sm"
+                        variant="outline"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <div>
+                    <Label>Project Title</Label>
+                    <Input
+                      value={project.title}
+                      onChange={(e) => updateProject(index, 'title', e.target.value)}
+                      placeholder="E-commerce Website"
+                    />
+                  </div>
+                  <div>
+                    <Label>Description</Label>
+                    <Textarea
+                      value={project.description}
+                      onChange={(e) => updateProject(index, 'description', e.target.value)}
+                      placeholder="Describe what you built and your role..."
+                      rows={3}
+                    />
+                  </div>
+                  <div>
+                    <Label>Technologies Used</Label>
+                    <Input
+                      value={project.technologies}
+                      onChange={(e) => updateProject(index, 'technologies', e.target.value)}
+                      placeholder="React, Node.js, MongoDB"
+                    />
+                  </div>
+                  <div>
+                    <Label>Project Link</Label>
+                    <Input
+                      value={project.link}
+                      onChange={(e) => updateProject(index, 'link', e.target.value)}
+                      placeholder="https://github.com/username/project"
+                    />
+                  </div>
+                  {index < resumeData.projects.length - 1 && <Separator />}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Experience and Education */}
+        {/* Right Column */}
         <div className="space-y-6">
           {/* Experience */}
           <Card>
@@ -452,6 +616,54 @@ const ResumeBuilder = () => {
                     </div>
                   </div>
                   {index < resumeData.education.length - 1 && <Separator />}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Custom Sections */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex justify-between items-center">
+                Custom Sections
+                <Button onClick={addCustomSection} size="sm" variant="outline">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {resumeData.customSections.map((section, index) => (
+                <div key={index} className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium">Custom Section {index + 1}</h4>
+                    {resumeData.customSections.length > 1 && (
+                      <Button
+                        onClick={() => removeCustomSection(index)}
+                        size="sm"
+                        variant="outline"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <div>
+                    <Label>Section Title</Label>
+                    <Input
+                      value={section.title}
+                      onChange={(e) => updateCustomSection(index, 'title', e.target.value)}
+                      placeholder="e.g., Certifications, Awards, Volunteer Work"
+                    />
+                  </div>
+                  <div>
+                    <Label>Content</Label>
+                    <Textarea
+                      value={section.content}
+                      onChange={(e) => updateCustomSection(index, 'content', e.target.value)}
+                      placeholder="Add the content for this section..."
+                      rows={4}
+                    />
+                  </div>
+                  {index < resumeData.customSections.length - 1 && <Separator />}
                 </div>
               ))}
             </CardContent>
