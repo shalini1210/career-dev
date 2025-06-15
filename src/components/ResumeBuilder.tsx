@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Plus, Trash2, Download, Eye } from 'lucide-react';
+import { Plus, Trash2, Download, Eye, Sparkles, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface Education {
   degree: string;
@@ -61,6 +62,109 @@ const ResumeBuilder = () => {
   });
 
   const [showPreview, setShowPreview] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatingField, setGeneratingField] = useState<string>('');
+  const { toast } = useToast();
+
+  const generateWithAI = async (prompt: string, field: string) => {
+    setIsGenerating(true);
+    setGeneratingField(field);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-resume-content', {
+        body: { prompt, resumeData }
+      });
+
+      if (error) throw error;
+
+      return data.content;
+    } catch (error) {
+      console.error('Error generating content:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate content. Please try again.",
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setIsGenerating(false);
+      setGeneratingField('');
+    }
+  };
+
+  const generateSummary = async () => {
+    const prompt = `Generate a professional summary for a resume based on the following information:
+    - Name: ${resumeData.fullName}
+    - Skills: ${resumeData.skills.filter(s => s.trim()).join(', ')}
+    - Experience: ${resumeData.experience.map(exp => `${exp.position} at ${exp.company}`).join(', ')}
+    
+    Create a 2-3 sentence professional summary that highlights key strengths and career focus.`;
+
+    const content = await generateWithAI(prompt, 'summary');
+    if (content) {
+      setResumeData(prev => ({ ...prev, summary: content }));
+      toast({
+        title: "Success",
+        description: "Professional summary generated successfully!",
+      });
+    }
+  };
+
+  const generateJobDescription = async (index: number) => {
+    const exp = resumeData.experience[index];
+    const prompt = `Generate a professional job description for a resume with the following details:
+    - Position: ${exp.position}
+    - Company: ${exp.company}
+    - Duration: ${exp.duration}
+    
+    Create 2-3 bullet points highlighting key responsibilities and achievements. Focus on quantifiable results and impact.`;
+
+    const content = await generateWithAI(prompt, `experience-${index}`);
+    if (content) {
+      updateExperience(index, 'description', content);
+      toast({
+        title: "Success",
+        description: "Job description generated successfully!",
+      });
+    }
+  };
+
+  const generateProjectDescription = async (index: number) => {
+    const project = resumeData.projects[index];
+    const prompt = `Generate a professional project description for a resume with the following details:
+    - Project: ${project.title}
+    - Technologies: ${project.technologies}
+    
+    Create a 2-3 sentence description highlighting the project's purpose, your role, and key achievements or technologies used.`;
+
+    const content = await generateWithAI(prompt, `project-${index}`);
+    if (content) {
+      updateProject(index, 'description', content);
+      toast({
+        title: "Success",
+        description: "Project description generated successfully!",
+      });
+    }
+  };
+
+  const generateSkillsSuggestions = async () => {
+    const prompt = `Based on the following resume information, suggest 8-10 relevant technical and soft skills:
+    - Position: ${resumeData.experience.map(exp => exp.position).join(', ')}
+    - Education: ${resumeData.education.map(edu => edu.degree).join(', ')}
+    - Current skills: ${resumeData.skills.filter(s => s.trim()).join(', ')}
+    
+    Return only the skills as a comma-separated list, focusing on both technical and professional skills relevant to the roles.`;
+
+    const content = await generateWithAI(prompt, 'skills');
+    if (content) {
+      const newSkills = content.split(',').map((skill: string) => skill.trim()).filter((skill: string) => skill);
+      setResumeData(prev => ({ ...prev, skills: newSkills }));
+      toast({
+        title: "Success",
+        description: "Skills suggestions generated successfully!",
+      });
+    }
+  };
 
   const updateBasicInfo = (field: keyof ResumeData, value: string) => {
     setResumeData(prev => ({ ...prev, [field]: value }));
@@ -328,7 +432,7 @@ const ResumeBuilder = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold">Resume Builder</h2>
+        <h2 className="text-3xl font-bold">AI-Powered Resume Builder</h2>
         <Button onClick={() => setShowPreview(true)} className="bg-blue-600 hover:bg-blue-700">
           <Eye className="mr-2 h-4 w-4" />
           Preview Resume
@@ -387,7 +491,23 @@ const ResumeBuilder = () => {
           {/* Professional Summary */}
           <Card>
             <CardHeader>
-              <CardTitle>Professional Summary</CardTitle>
+              <CardTitle className="flex justify-between items-center">
+                Professional Summary
+                <Button 
+                  onClick={generateSummary} 
+                  size="sm" 
+                  variant="outline"
+                  disabled={isGenerating || !resumeData.fullName.trim()}
+                  className="bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600"
+                >
+                  {isGenerating && generatingField === 'summary' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" />
+                  )}
+                  <span className="ml-1">AI Generate</span>
+                </Button>
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <Textarea
@@ -404,9 +524,25 @@ const ResumeBuilder = () => {
             <CardHeader>
               <CardTitle className="flex justify-between items-center">
                 Skills
-                <Button onClick={addSkill} size="sm" variant="outline">
-                  <Plus className="h-4 w-4" />
-                </Button>
+                <div className="space-x-2">
+                  <Button 
+                    onClick={generateSkillsSuggestions} 
+                    size="sm" 
+                    variant="outline"
+                    disabled={isGenerating}
+                    className="bg-gradient-to-r from-green-500 to-teal-500 text-white hover:from-green-600 hover:to-teal-600"
+                  >
+                    {isGenerating && generatingField === 'skills' ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4" />
+                    )}
+                    <span className="ml-1">AI Suggest</span>
+                  </Button>
+                  <Button onClick={addSkill} size="sm" variant="outline">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -465,7 +601,23 @@ const ResumeBuilder = () => {
                     />
                   </div>
                   <div>
-                    <Label>Description</Label>
+                    <Label className="flex justify-between items-center">
+                      Description
+                      <Button 
+                        onClick={() => generateProjectDescription(index)} 
+                        size="sm" 
+                        variant="outline"
+                        disabled={isGenerating || !project.title.trim()}
+                        className="bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600"
+                      >
+                        {isGenerating && generatingField === `project-${index}` ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Sparkles className="h-4 w-4" />
+                        )}
+                        <span className="ml-1">AI Generate</span>
+                      </Button>
+                    </Label>
                     <Textarea
                       value={project.description}
                       onChange={(e) => updateProject(index, 'description', e.target.value)}
@@ -550,7 +702,23 @@ const ResumeBuilder = () => {
                     />
                   </div>
                   <div>
-                    <Label>Description</Label>
+                    <Label className="flex justify-between items-center">
+                      Description
+                      <Button 
+                        onClick={() => generateJobDescription(index)} 
+                        size="sm" 
+                        variant="outline"
+                        disabled={isGenerating || !exp.position.trim()}
+                        className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600"
+                      >
+                        {isGenerating && generatingField === `experience-${index}` ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Sparkles className="h-4 w-4" />
+                        )}
+                        <span className="ml-1">AI Generate</span>
+                      </Button>
+                    </Label>
                     <Textarea
                       value={exp.description}
                       onChange={(e) => updateExperience(index, 'description', e.target.value)}
