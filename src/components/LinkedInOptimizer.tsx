@@ -42,12 +42,21 @@ const LinkedInOptimizer = () => {
 
     setIsAnalyzing(true);
     try {
+      console.log('Starting LinkedIn profile analysis for:', linkedinUrl);
+      
       const { data, error } = await supabase.functions.invoke('analyze-linkedin-profile', {
         body: { url: linkedinUrl },
       });
 
+      console.log('Supabase response:', { data, error });
+
       if (error) {
+        console.error('Supabase function error:', error);
         throw new Error(error.message || 'Failed to analyze profile');
+      }
+
+      if (!data) {
+        throw new Error('No data returned from analysis');
       }
 
       setAnalysis(data);
@@ -60,7 +69,7 @@ const LinkedInOptimizer = () => {
       console.error('Error analyzing LinkedIn profile:', error);
       toast({
         title: 'Analysis Failed',
-        description: 'Failed to analyze your LinkedIn profile. Please try again.',
+        description: error instanceof Error ? error.message : 'Failed to analyze your LinkedIn profile. Please try again.',
         variant: 'destructive',
       });
     } finally {
