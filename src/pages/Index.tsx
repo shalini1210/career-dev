@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, BarChart3, MapPin, Mail, Plus, Download, Eye, Star, LogIn, UserPlus } from 'lucide-react';
+import { FileText, BarChart3, MapPin, Mail, Plus, Download, Eye, Star, LogIn, UserPlus, DollarSign } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ResumeBuilder from '@/components/ResumeBuilder';
 import ResumeAnalyzer from '@/components/ResumeAnalyzer';
@@ -12,6 +11,7 @@ import AuthForm from '@/components/AuthForm';
 import Testimonials from '@/components/Testimonials';
 import Footer from '@/components/Footer';
 import DownloadModal from '@/components/DownloadModal';
+import SalaryGuide from '@/components/SalaryGuide';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -50,6 +50,14 @@ const Index = () => {
       icon: Mail,
       color: 'from-orange-500 via-amber-500 to-yellow-500',
       features: ['Job-Specific Content', 'AI Writing', 'Professional Templates']
+    },
+    {
+      id: 'salary-guide',
+      title: 'Salary Guide',
+      description: 'Get salary insights and negotiation tips for your role',
+      icon: DollarSign,
+      color: 'from-green-600 via-blue-600 to-purple-600',
+      features: ['Market Research', 'Negotiation Tips', 'Location-based Data']
     }
   ];
 
@@ -135,6 +143,16 @@ const Index = () => {
               </Button>
             </div>
             <CoverLetterBuilder />
+          </motion.div>
+        );
+      case 'salary-guide':
+        return (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <SalaryGuide />
           </motion.div>
         );
       default:
@@ -230,7 +248,7 @@ const Index = () => {
             {/* Tools Grid */}
             <motion.div
               variants={itemVariants}
-              className="grid md:grid-cols-2 gap-8"
+              className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
             >
               {tools.map((tool, index) => (
                 <motion.div
@@ -350,7 +368,7 @@ const Index = () => {
                 CareerCraft
               </div>
             </motion.div>
-            <div className="hidden md:flex space-x-1">
+            <div className="hidden md:flex space-x-1 overflow-x-auto">
               {tools.map((tool) => (
                 <motion.div
                   key={tool.id}
@@ -361,14 +379,14 @@ const Index = () => {
                     variant={activeTab === tool.id ? "default" : "ghost"}
                     size="sm"
                     onClick={() => setActiveTab(tool.id)}
-                    className={`flex items-center ${
+                    className={`flex items-center whitespace-nowrap ${
                       activeTab === tool.id 
                         ? `bg-gradient-to-r ${tool.color} text-white` 
                         : 'hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100'
                     }`}
                   >
                     <tool.icon className="h-4 w-4 mr-1" />
-                    {tool.title}
+                    {tool.title.replace(' Builder', '').replace(' Guide', '')}
                   </Button>
                 </motion.div>
               ))}
@@ -420,7 +438,7 @@ const Index = () => {
                 }`}
               >
                 <tool.icon className="h-4 w-4 mr-1" />
-                {tool.title}
+                {tool.title.replace(' Builder', '').replace(' Guide', '')}
               </Button>
             </motion.div>
           ))}
