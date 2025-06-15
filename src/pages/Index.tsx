@@ -36,45 +36,85 @@ const Index = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [pendingTool, setPendingTool] = useState<ActiveTool>(null);
 
   useEffect(() => {
-    // Check current auth state
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Configure Supabase client for proper session handling
+    const initAuth = async () => {
+      // Get current session
+      const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user ?? null);
-    });
+    };
+
+    initAuth();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
       setUser(session?.user ?? null);
-      if (event === 'SIGNED_IN') {
+      
+      if (event === 'SIGNED_IN' && session?.user) {
         setShowAuth(false);
+        
+        // Track tool usage if there was a pending tool
+        if (pendingTool) {
+          try {
+            await supabase.from('user_tool_usage').insert({
+              user_id: session.user.id,
+              tool_name: pendingTool
+            });
+            setActiveTool(pendingTool);
+            setPendingTool(null);
+          } catch (error) {
+            console.error('Error tracking tool usage:', error);
+            setActiveTool(pendingTool);
+            setPendingTool(null);
+          }
+        }
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [pendingTool]);
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
     document.documentElement.classList.toggle('dark');
   };
 
-  const handleToolClick = (toolId: ActiveTool) => {
+  const handleToolClick = async (toolId: ActiveTool) => {
     if (!user) {
+      setPendingTool(toolId);
       setShowAuth(true);
       return;
     }
+
+    // User is authenticated, track tool usage and activate tool
+    try {
+      await supabase.from('user_tool_usage').insert({
+        user_id: user.id,
+        tool_name: toolId
+      });
+    } catch (error) {
+      console.error('Error tracking tool usage:', error);
+    }
+    
     setActiveTool(toolId);
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setActiveTool(null);
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setActiveTool(null);
+      setPendingTool(null);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   if (showAuth) {
-    return <AuthForm onBack={() => setShowAuth(false)} />;
+    return <AuthForm onBack={() => setShowAuth(false)} toolName={pendingTool || undefined} />;
   }
 
   if (activeTool) {
@@ -202,7 +242,7 @@ const Index = () => {
       opacity: 1,
       transition: {
         duration: 0.6,
-        ease: "easeOut"
+        ease: [0.4, 0, 0.2, 1]
       }
     }
   };
@@ -242,7 +282,7 @@ const Index = () => {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: "easeOut" }}
+            transition={{ duration: 1, ease: [0.4, 0, 0.2, 1] }}
             className="max-w-4xl mx-auto"
           >
             <motion.div
@@ -317,7 +357,7 @@ const Index = () => {
               animate="visible"
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
             >
-              {tools.map((tool, index) => {
+              {tools.map((tool) => {
                 const IconComponent = tool.icon;
                 return (
                   <motion.div
@@ -335,7 +375,7 @@ const Index = () => {
                       {!user && (
                         <div className="absolute inset-0 bg-black/5 dark:bg-white/5 backdrop-blur-[1px] z-10 flex items-center justify-center">
                           <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">🔒 Premium Feature</p>
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">🔒 Sign In Required</p>
                           </div>
                         </div>
                       )}
@@ -359,7 +399,7 @@ const Index = () => {
                         <Button 
                           className={`w-full bg-gradient-to-r ${tool.gradient} ${tool.hoverGradient} text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1`}
                         >
-                          {user ? "Get Started" : "Sign Up to Access"}
+                          {user ? "Get Started" : "Sign In to Access"}
                         </Button>
                       </CardContent>
                     </Card>

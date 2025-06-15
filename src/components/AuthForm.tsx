@@ -7,28 +7,123 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Mail, Lock, User, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface AuthFormProps {
   onBack: () => void;
+  toolName?: string;
 }
 
-const AuthForm = ({ onBack }: AuthFormProps) => {
+const AuthForm = ({ onBack, toolName }: AuthFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     name: ''
   });
+  const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent, type: 'login' | 'signup') => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            full_name: formData.name
+          }
+        }
+      });
+
+      if (error) {
+        toast({
+          title: "Sign up failed",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (data.user) {
+        // Track tool usage if toolName is provided
+        if (toolName) {
+          await supabase.from('user_tool_usage').insert({
+            user_id: data.user.id,
+            tool_name: toolName
+          });
+        }
+
+        toast({
+          title: "Account created successfully!",
+          description: "Please check your email to verify your account."
+        });
+        
+        // Redirect to main page
+        window.location.href = '/';
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive"
+      });
+    } finally {
       setIsLoading(false);
-      alert(`${type === 'login' ? 'Login' : 'Sign up'} successful!`);
-    }, 1500);
+    }
+  };
+
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password
+      });
+
+      if (error) {
+        toast({
+          title: "Sign in failed",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (data.user) {
+        // Track tool usage if toolName is provided
+        if (toolName) {
+          await supabase.from('user_tool_usage').insert({
+            user_id: data.user.id,
+            tool_name: toolName
+          });
+        }
+
+        toast({
+          title: "Welcome back!",
+          description: "You have been signed in successfully."
+        });
+        
+        // Redirect to main page
+        window.location.href = '/';
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -108,7 +203,7 @@ const AuthForm = ({ onBack }: AuthFormProps) => {
                 transition={{ delay: 0.5, type: "spring" }}
               >
                 <CardTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
-                  Welcome to CareerCraft
+                  {toolName ? `Access ${toolName}` : 'Welcome to CareerCraft'}
                 </CardTitle>
               </motion.div>
               <motion.p
@@ -117,7 +212,7 @@ const AuthForm = ({ onBack }: AuthFormProps) => {
                 transition={{ delay: 0.7 }}
                 className="text-gray-600 text-lg"
               >
-                Create your professional future
+                {toolName ? `Sign in to use ${toolName}` : 'Create your professional future'}
               </motion.p>
             </CardHeader>
             <CardContent className="pb-8">
@@ -142,7 +237,7 @@ const AuthForm = ({ onBack }: AuthFormProps) => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5 }}
-                    onSubmit={(e) => handleSubmit(e, 'login')}
+                    onSubmit={handleSignIn}
                     className="space-y-6"
                   >
                     <div className="space-y-2">
@@ -195,7 +290,7 @@ const AuthForm = ({ onBack }: AuthFormProps) => {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5 }}
-                    onSubmit={(e) => handleSubmit(e, 'signup')}
+                    onSubmit={handleSignUp}
                     className="space-y-6"
                   >
                     <div className="space-y-2">
