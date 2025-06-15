@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { useToast } from '@/components/ui/use-toast';
 import LinkedInAnalysisResults from './linkedin/LinkedInAnalysisResults';
 import { LinkedInAnalysis } from '@/types/linkedin';
+import { supabase } from '@/integrations/supabase/client';
 
 const LinkedInOptimizer = () => {
   const [linkedinUrl, setLinkedinUrl] = useState('');
@@ -41,20 +42,15 @@ const LinkedInOptimizer = () => {
 
     setIsAnalyzing(true);
     try {
-      const response = await fetch('/api/analyze-linkedin-profile', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ url: linkedinUrl }),
+      const { data, error } = await supabase.functions.invoke('analyze-linkedin-profile', {
+        body: { url: linkedinUrl },
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to analyze profile');
+      if (error) {
+        throw new Error(error.message || 'Failed to analyze profile');
       }
 
-      const analysisData = await response.json();
-      setAnalysis(analysisData);
+      setAnalysis(data);
       
       toast({
         title: 'Analysis Complete!',
