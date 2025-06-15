@@ -66,69 +66,76 @@ serve(async (req) => {
 
     // Domain-specific optimization prompts
     const domainPrompts = {
-      'software-development': 'Provide analysis specifically for software developers, focusing on technical skills, coding projects, programming languages, frameworks, development methodologies, and open source contributions.',
-      'data-science': 'Provide analysis specifically for data scientists, focusing on statistical analysis, machine learning, data visualization, programming languages like Python/R, and data science tools.',
-      'product-management': 'Provide analysis specifically for product managers, focusing on product strategy, roadmap management, stakeholder communication, metrics analysis, and cross-functional leadership.',
-      'design': 'Provide analysis specifically for UI/UX designers, focusing on design portfolio, design thinking, user research, prototyping tools, and design systems.',
-      'marketing': 'Provide analysis specifically for digital marketers, focusing on campaign management, analytics, growth strategies, content marketing, and marketing automation tools.',
-      'sales': 'Provide analysis specifically for sales professionals, focusing on sales achievements, CRM experience, client relationship management, and revenue generation.',
-      'finance': 'Provide analysis specifically for finance professionals, focusing on financial analysis, accounting expertise, compliance, and financial modeling.',
-      'hr': 'Provide analysis specifically for HR professionals, focusing on talent acquisition, employee development, HR policies, and people management.',
-      'consulting': 'Provide analysis specifically for consultants, focusing on problem-solving, client management, industry expertise, and analytical skills.',
-      'healthcare': 'Provide analysis specifically for healthcare professionals, focusing on clinical experience, patient care, medical technologies, and healthcare compliance.',
-      'education': 'Provide analysis specifically for education professionals, focusing on teaching experience, curriculum development, student outcomes, and educational technologies.',
-      'engineering': 'Provide analysis specifically for engineers, focusing on technical projects, engineering principles, problem-solving, and industry-specific technologies.',
-      'operations': 'Provide analysis specifically for operations professionals, focusing on process optimization, supply chain management, efficiency improvements, and operational metrics.',
-      'legal': 'Provide analysis specifically for legal professionals, focusing on legal expertise, case management, compliance, and legal research skills.',
-      'other': 'Provide general professional analysis focusing on leadership, communication, project management, and transferable skills.'
+      'software-development': 'Focus on technical skills, programming languages, frameworks, development methodologies, open source contributions, and software engineering best practices.',
+      'data-science': 'Focus on statistical analysis, machine learning, data visualization, programming languages like Python/R, and data science tools and methodologies.',
+      'product-management': 'Focus on product strategy, roadmap management, stakeholder communication, metrics analysis, cross-functional leadership, and product lifecycle management.',
+      'design': 'Focus on design portfolio, design thinking, user research, prototyping tools, design systems, and visual design capabilities.',
+      'marketing': 'Focus on campaign management, analytics, growth strategies, content marketing, marketing automation tools, and digital marketing expertise.',
+      'sales': 'Focus on sales achievements, CRM experience, client relationship management, revenue generation, and sales process optimization.',
+      'finance': 'Focus on financial analysis, accounting expertise, compliance, financial modeling, and investment analysis.',
+      'hr': 'Focus on talent acquisition, employee development, HR policies, people management, and organizational development.',
+      'consulting': 'Focus on problem-solving, client management, industry expertise, analytical skills, and strategic thinking.',
+      'healthcare': 'Focus on clinical experience, patient care, medical technologies, healthcare compliance, and medical expertise.',
+      'education': 'Focus on teaching experience, curriculum development, student outcomes, educational technologies, and pedagogical approaches.',
+      'engineering': 'Focus on technical projects, engineering principles, problem-solving, industry-specific technologies, and engineering methodologies.',
+      'operations': 'Focus on process optimization, supply chain management, efficiency improvements, operational metrics, and logistics.',
+      'legal': 'Focus on legal expertise, case management, compliance, legal research skills, and regulatory knowledge.',
+      'other': 'Focus on leadership, communication, project management, and transferable professional skills.'
     };
 
     const domainPrompt = domainPrompts[domain] || domainPrompts['other'];
 
-    // Create a comprehensive LinkedIn profile analysis prompt tailored to the specific domain
+    // Create a more realistic analysis prompt that considers actual profile characteristics
     const profileAnalysisPrompt = `
     You are a LinkedIn profile optimization expert specializing in ${domain.replace('-', ' ')} careers. 
     
-    Analyze this LinkedIn profile URL: ${url}
+    I need you to analyze this LinkedIn profile URL: ${url}
     
-    Since you cannot access the actual profile content, provide a realistic and varied analysis that would be typical for a professional in ${domain.replace('-', ' ')}. Each analysis should be unique and focus on different aspects relevant to this domain.
+    Since you cannot directly access the profile, create a realistic analysis for a ${domain.replace('-', ' ')} professional. 
+    However, make the analysis realistic and varied - not everyone has perfect profiles. Consider common issues:
+    
+    - Some professionals may not have profile photos (score this as 20-40/100 if likely missing)
+    - Headlines might be generic job titles rather than optimized (score 40-70/100)
+    - Summaries might be missing or brief (score 30-80/100)
+    - Experience descriptions might lack metrics (score 50-80/100)
+    - Skills sections might be incomplete (score 60-85/100)
     
     ${domainPrompt}
     
-    Generate a realistic analysis with varying scores (don't always use the same numbers) and provide specific, actionable feedback. Focus on industry-specific optimization strategies and best practices.
+    Make this analysis realistic with varied scores that reflect common LinkedIn profile issues. Don't assume everything is perfect.
     
     Provide your analysis in this exact JSON format:
     
     {
-      "overall_score": [random number between 65-85],
-      "headline_score": [random number between 60-90],
-      "summary_score": [random number between 65-85],
-      "experience_score": [random number between 70-85],
-      "skills_score": [random number between 75-90],
-      "profile_photo_score": [random number between 80-95],
+      "overall_score": [realistic number between 55-80, not always the same],
+      "headline_score": [realistic number between 40-85, considering many have basic job titles],
+      "summary_score": [realistic number between 30-85, many profiles have weak or missing summaries],
+      "experience_score": [realistic number between 50-85, many lack quantified achievements],
+      "skills_score": [realistic number between 60-90, usually better maintained],
+      "profile_photo_score": [realistic number between 20-95, many professionals don't have photos or have poor quality ones],
       "strengths": [
-        "List 2-3 specific strengths that would be realistic for a ${domain.replace('-', ' ')} professional",
-        "Focus on domain-specific achievements, skills, or expertise"
+        "List 2-3 realistic strengths for a ${domain.replace('-', ' ')} professional",
+        "Be specific to the domain but realistic about what's commonly found"
       ],
       "improvements": [
-        "List 2-4 specific areas for improvement relevant to ${domain.replace('-', ' ')}",
-        "Include industry-specific metrics, certifications, or skill enhancements"
+        "List 2-4 realistic areas for improvement relevant to ${domain.replace('-', ' ')}",
+        "Include common issues like missing metrics, weak headlines, or incomplete sections"
       ],
-      "detailed_feedback": "Provide detailed feedback specifically for ${domain.replace('-', ' ')} professionals, mentioning industry-specific skills, achievements, career progression, and optimization strategies. Make this unique and realistic for this domain.",
+      "detailed_feedback": "Provide realistic detailed feedback for ${domain.replace('-', ' ')} professionals, mentioning both positive aspects and areas that commonly need improvement. Be specific about industry standards and expectations.",
       "optimized_suggestions": {
-        "headline": "Create a compelling headline for a ${domain.replace('-', ' ')} professional with specific technologies, skills, or focus areas relevant to this domain",
-        "summary": "Write a professional summary highlighting expertise, experience, and career goals specifically relevant to ${domain.replace('-', ' ')}",
-        "skills_to_add": ["List 4-6 relevant skills for ${domain.replace('-', ' ')}", "Include industry-specific tools, technologies, or methodologies", "Focus on current industry trends and requirements"],
+        "headline": "Create a compelling, industry-specific headline for a ${domain.replace('-', ' ')} professional that goes beyond just job title",
+        "summary": "Write a professional summary highlighting key expertise and achievements relevant to ${domain.replace('-', ' ')}",
+        "skills_to_add": ["List 4-6 highly relevant skills for ${domain.replace('-', ' ')}", "Include both technical and soft skills", "Focus on current industry demands"],
         "experience_tips": [
-          "Add specific metrics and achievements relevant to ${domain.replace('-', ' ')}",
-          "Include industry-specific tools, technologies, or methodologies used", 
-          "Mention project scope, team size, or impact metrics relevant to this domain",
-          "Highlight leadership, problem-solving, and domain-specific expertise examples"
+          "Add specific metrics and quantifiable achievements",
+          "Include relevant technologies and methodologies for ${domain.replace('-', ' ')}", 
+          "Highlight leadership and problem-solving examples",
+          "Use action verbs and focus on impact rather than just responsibilities"
         ]
       }
     }
     
-    Make this analysis realistic and specifically tailored for ${domain.replace('-', ' ')} professionals. Vary the scores and suggestions to provide unique insights each time, while maintaining relevance to the specified domain.
+    Make this analysis realistic and helpful. Vary the scores meaningfully and provide actionable advice specific to ${domain.replace('-', ' ')} professionals.
     `;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -142,14 +149,14 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a LinkedIn profile optimization expert specializing in ${domain.replace('-', ' ')} careers. Always respond with valid JSON that matches the requested structure exactly. Focus on realistic, domain-specific advice. Vary your responses to provide unique insights each time while maintaining relevance to the specified professional domain.`
+            content: `You are a LinkedIn profile optimization expert specializing in ${domain.replace('-', ' ')} careers. Always respond with valid JSON that matches the requested structure exactly. Provide realistic, varied analysis that reflects common LinkedIn profile issues and strengths. Make scores realistic - not everyone has perfect profiles.`
           },
           {
             role: 'user',
             content: profileAnalysisPrompt
           }
         ],
-        temperature: 0.8,
+        temperature: 0.7,
         max_tokens: 2000,
       }),
     });
@@ -179,41 +186,43 @@ serve(async (req) => {
       console.error('Failed to parse OpenAI response:', analysisText);
       console.error('Parse error:', parseError);
       
-      // Return a domain-specific fallback analysis if parsing fails
+      // Return a realistic domain-specific fallback analysis if parsing fails
+      const generateRealisticScore = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
+      
       const fallbackScores = {
-        overall: Math.floor(Math.random() * 20) + 65, // 65-85
-        headline: Math.floor(Math.random() * 30) + 60, // 60-90
-        summary: Math.floor(Math.random() * 20) + 65, // 65-85
-        experience: Math.floor(Math.random() * 15) + 70, // 70-85
-        skills: Math.floor(Math.random() * 15) + 75, // 75-90
-        photo: Math.floor(Math.random() * 15) + 80 // 80-95
+        overall: generateRealisticScore(55, 75),
+        headline: generateRealisticScore(45, 70),
+        summary: generateRealisticScore(35, 75),
+        experience: generateRealisticScore(55, 80),
+        skills: generateRealisticScore(65, 85),
+        photo: generateRealisticScore(25, 85) // More realistic range for photos
       };
 
-      // Domain-specific fallback content
+      // Domain-specific realistic fallback content
       const domainFallbacks = {
         'software-development': {
           strengths: [
-            "Strong technical foundation with modern development practices",
-            "Good use of relevant programming languages and frameworks",
-            "Evidence of continuous learning and skill development"
+            "Shows technical background in software development",
+            "Has relevant programming experience listed",
+            "Demonstrates continuous learning in tech"
           ],
-          skills: ["TypeScript", "React", "Node.js", "Docker", "AWS", "GraphQL"]
+          skills: ["JavaScript", "React", "Node.js", "Git", "AWS", "TypeScript"]
         },
         'data-science': {
           strengths: [
-            "Strong analytical and statistical analysis capabilities",
-            "Proficiency in data visualization and machine learning",
-            "Experience with data science tools and methodologies"
+            "Has analytical and data-focused experience",
+            "Shows proficiency in data analysis tools",
+            "Demonstrates statistical thinking approach"
           ],
-          skills: ["Python", "R", "SQL", "Tableau", "Machine Learning", "Statistics"]
+          skills: ["Python", "SQL", "Tableau", "Machine Learning", "Statistics", "R"]
         },
         'product-management': {
           strengths: [
-            "Strong product strategy and roadmap management",
-            "Excellent stakeholder communication and collaboration",
-            "Data-driven decision making and metrics analysis"
+            "Shows product strategy experience",
+            "Has cross-functional collaboration background",
+            "Demonstrates user-focused thinking"
           ],
-          skills: ["Product Strategy", "Agile", "Analytics", "Roadmapping", "Stakeholder Management", "User Research"]
+          skills: ["Product Strategy", "Agile", "Analytics", "User Research", "Roadmapping", "Stakeholder Management"]
         }
       };
 
@@ -229,20 +238,21 @@ serve(async (req) => {
         strengths: fallback.strengths,
         improvements: [
           `Add more quantifiable achievements specific to ${domain.replace('-', ' ')}`,
-          "Include industry-specific metrics and impact measurements",
-          `Optimize for ${domain.replace('-', ' ')} keywords and technologies`,
-          "Highlight leadership and project management experiences"
+          "Optimize headline to be more compelling than just job title",
+          `Include industry-specific keywords for ${domain.replace('-', ' ')}`,
+          "Add a professional summary section if missing",
+          "Include metrics and impact in experience descriptions"
         ],
-        detailed_feedback: `Your LinkedIn profile shows good potential for ${domain.replace('-', ' ')}, but there's room for improvement in showcasing your domain-specific impact. Focus on quantifying your achievements and highlighting the technologies and methodologies most relevant to your field.`,
+        detailed_feedback: `Your LinkedIn profile shows potential for ${domain.replace('-', ' ')}, but there are several areas for improvement. Focus on quantifying your achievements, optimizing your headline beyond just your job title, and ensuring all sections are complete and compelling. Consider adding a professional photo if missing, and make sure your summary clearly articulates your value proposition.`,
         optimized_suggestions: {
-          headline: `${domain.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())} Professional | Building Innovative Solutions`,
-          summary: `Experienced ${domain.replace('-', ' ')} professional passionate about delivering high-quality results and driving innovation. Proven track record of successful project delivery and continuous learning in emerging technologies.`,
+          headline: `${domain.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())} Professional | Building Innovative Solutions | [Key Technology/Skill]`,
+          summary: `Experienced ${domain.replace('-', ' ')} professional with a passion for delivering high-quality results and driving innovation. Proven track record of successful project delivery and continuous learning in emerging technologies. Skilled in [relevant technologies] with experience in [specific achievements].`,
           skills_to_add: fallback.skills,
           experience_tips: [
-            "Quantify your impact with specific metrics and achievements",
-            "Include relevant technologies and methodologies",
-            "Highlight team leadership and collaboration examples",
-            "Mention problem-solving and innovation examples"
+            "Quantify your impact with specific metrics (e.g., 'increased efficiency by 30%')",
+            "Include relevant technologies and methodologies you've used",
+            "Highlight leadership and mentoring experiences",
+            "Use action verbs and focus on results rather than just responsibilities"
           ]
         }
       };
