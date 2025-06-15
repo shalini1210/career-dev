@@ -17,21 +17,31 @@ serve(async (req) => {
   try {
     console.log('API Key available:', !!openAIApiKey);
     
-    const { position, country } = await req.json();
-    console.log('Request received:', { position, country });
+    const { position, country, experience } = await req.json();
+    console.log('Request received:', { position, country, experience });
 
     if (!openAIApiKey) {
       throw new Error('OpenAI API key not configured');
     }
 
-    const prompt = `Provide accurate 2024 salary data for a ${position} position in ${country}. 
+    const prompt = `Provide accurate 2024 salary data for a ${position} position in ${country} with ${experience || 'mid-level'} experience. 
     
     Requirements:
     - Return ONLY a JSON object with this exact structure
     - Use the correct currency for the country
-    - Provide realistic salary ranges based on current market data
+    - Provide realistic salary ranges based on current market data and experience level
+    - Experience level should significantly impact the salary ranges
     - For India, express amounts in INR and include LPA (Lakhs Per Annum) format
-    - Include 5-7 specific negotiation tips for this role and location
+    - Include 5-7 specific negotiation tips for this role, location, and experience level
+    - Consider experience level when providing tips (entry level vs senior vs executive)
+    
+    Experience Level Impact:
+    - Entry Level (0-1 years): Lower end of market range
+    - Junior (1-3 years): Below market average
+    - Mid Level (3-5 years): Market average
+    - Senior (5-8 years): Above market average
+    - Lead/Principal (8-12 years): High end of market range
+    - Executive/Director (12+ years): Top tier compensation
     
     JSON structure:
     {
@@ -64,7 +74,7 @@ serve(async (req) => {
         messages: [
           { 
             role: 'system', 
-            content: 'You are a salary research expert with access to current market data. Always respond with valid JSON only.' 
+            content: 'You are a salary research expert with access to current market data. Always respond with valid JSON only. Consider experience levels carefully when providing salary ranges.' 
           },
           { role: 'user', content: prompt }
         ],

@@ -22,6 +22,7 @@ import RoadmapBuilder from "@/components/RoadmapBuilder";
 import ProjectFeedback from "@/components/ProjectFeedback";
 import Testimonials from "@/components/Testimonials";
 import Footer from "@/components/Footer";
+import FloatingElements from "@/components/FloatingElements";
 import { Switch } from "@/components/ui/switch";
 
 type ActiveTool = 'resume-builder' | 'resume-analyzer' | 'cover-letter' | 'salary-guide' | 'roadmap' | 'project-feedback' | null;
@@ -72,7 +73,11 @@ const Index = () => {
             </div>
           </div>
         </div>
-        {renderTool()}
+        <div className="flex justify-center px-4">
+          <div className="w-full max-w-6xl">
+            {renderTool()}
+          </div>
+        </div>
       </div>
     );
   }
@@ -151,48 +156,12 @@ const Index = () => {
     }
   };
 
-  const floatingShapeVariants = {
-    animate: {
-      y: [-20, 20, -20],
-      rotate: [0, 180, 360],
-      transition: {
-        duration: 8,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }
-    }
-  };
-
   return (
     <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'dark' : ''}`}>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 relative overflow-hidden">
         
         {/* Floating Background Elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <motion.div
-            variants={floatingShapeVariants}
-            animate="animate"
-            className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-full blur-xl"
-          />
-          <motion.div
-            variants={floatingShapeVariants}
-            animate="animate"
-            style={{ animationDelay: '2s' }}
-            className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-r from-pink-400/20 to-red-400/20 rounded-full blur-xl"
-          />
-          <motion.div
-            variants={floatingShapeVariants}
-            animate="animate"
-            style={{ animationDelay: '4s' }}
-            className="absolute bottom-40 left-1/4 w-40 h-40 bg-gradient-to-r from-green-400/20 to-blue-400/20 rounded-full blur-xl"
-          />
-          <motion.div
-            variants={floatingShapeVariants}
-            animate="animate"
-            style={{ animationDelay: '6s' }}
-            className="absolute bottom-20 right-1/3 w-28 h-28 bg-gradient-to-r from-yellow-400/20 to-orange-400/20 rounded-full blur-xl"
-          />
-        </div>
+        <FloatingElements />
 
         {/* Dark Mode Toggle */}
         <div className="absolute top-6 right-6 z-50">

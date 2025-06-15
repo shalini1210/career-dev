@@ -41,29 +41,23 @@ const FloatingElements = () => {
     }
   ];
 
-  const floatingVariants = {
-    animate: (delay: number) => ({
-      y: [-20, 20, -20],
-      x: [-10, 10, -10],
-      rotate: [0, 180, 360],
-      scale: [1, 1.1, 1],
-      transition: {
-        duration: 8 + delay,
-        repeat: Infinity,
-        ease: "easeInOut",
-        delay: delay
-      }
-    })
-  };
-
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       {elements.map((element, index) => (
         <motion.div
           key={index}
-          custom={element.delay}
-          variants={floatingVariants}
-          animate="animate"
+          animate={{
+            y: [-20, 20, -20],
+            x: [-10, 10, -10],
+            rotate: [0, 180, 360],
+            scale: [1, 1.1, 1],
+          }}
+          transition={{
+            duration: 8 + element.delay,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: element.delay
+          }}
           className={`absolute ${element.position} ${element.size} bg-gradient-to-r ${element.gradient} rounded-full blur-xl`}
         />
       ))}
