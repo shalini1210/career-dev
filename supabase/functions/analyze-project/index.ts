@@ -31,60 +31,95 @@ serve(async (req) => {
     // First, scrape the project content
     console.log('Scraping project content...');
     let scrapedContent = '';
+    let isGitHub = false;
     
     try {
-      const scrapeResponse = await fetch(projectUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      // Check if it's a GitHub URL and adjust scraping strategy
+      if (projectUrl.includes('github.com')) {
+        isGitHub = true;
+        // For GitHub, try to get the README or repository info
+        const readmeUrl = projectUrl.replace('github.com', 'raw.githubusercontent.com') + '/main/README.md';
+        try {
+          const readmeResponse = await fetch(readmeUrl);
+          if (readmeResponse.ok) {
+            scrapedContent = await readmeResponse.text();
+          }
+        } catch {
+          // Fallback to main page
+          const scrapeResponse = await fetch(projectUrl);
+          if (scrapeResponse.ok) {
+            scrapedContent = await scrapeResponse.text();
+          }
         }
-      });
-      
-      if (scrapeResponse.ok) {
-        const htmlContent = await scrapeResponse.text();
-        // Extract text content and limit size
-        scrapedContent = htmlContent
-          .replace(/<script[^>]*>.*?<\/script>/gi, '')
-          .replace(/<style[^>]*>.*?<\/style>/gi, '')
-          .replace(/<[^>]*>/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim()
-          .substring(0, 5000); // Limit to 5000 chars
+      } else {
+        // For live websites
+        const scrapeResponse = await fetch(projectUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          }
+        });
+        
+        if (scrapeResponse.ok) {
+          const htmlContent = await scrapeResponse.text();
+          // Extract text content and limit size
+          scrapedContent = htmlContent
+            .replace(/<script[^>]*>.*?<\/script>/gi, '')
+            .replace(/<style[^>]*>.*?<\/style>/gi, '')
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .substring(0, 8000); // Increased limit for better analysis
+        }
       }
     } catch (scrapeError) {
-      console.log('Could not scrape content, using URL only:', scrapeError);
+      console.log('Could not scrape content:', scrapeError);
       scrapedContent = 'Content could not be scraped automatically.';
     }
 
-    const prompt = `As an expert project reviewer and technical interviewer, analyze this project and provide detailed feedback.
+    const prompt = `You are a senior technical interviewer and hiring manager reviewing a software project for potential employment. Analyze this project THOROUGHLY and provide honest, realistic feedback with VARIED scores based on actual content analysis.
 
-Project URL: ${projectUrl}
-${projectDescription ? `Project Description: ${projectDescription}` : ''}
+Project Details:
+- URL: ${projectUrl}
+- Type: ${isGitHub ? 'Repository/Code' : 'Live Website/Portfolio'}
+- Description: ${projectDescription || 'Not provided'}
+- Scraped Content: ${scrapedContent}
 
-Scraped Content Preview: ${scrapedContent}
+CRITICAL INSTRUCTIONS:
+1. SCORES MUST BE REALISTIC AND VARIED - DO NOT default to 75 or any standard number
+2. Base scores on ACTUAL analysis of the visible content, technology stack, and presentation
+3. Consider the project type (portfolio vs demo vs full application)
+4. Be honest about weaknesses - most projects have room for improvement
+5. Provide SPECIFIC, ACTIONABLE feedback based on what you can observe
 
-Please analyze this project and provide a comprehensive review in the following JSON format:
+Scoring Guidelines:
+- 90-100: Exceptional, production-ready, impressive projects
+- 80-89: Very good projects with minor areas for improvement  
+- 70-79: Good projects with some notable areas for improvement
+- 60-69: Average projects with several areas needing work
+- 50-59: Below average projects with significant issues
+- Below 50: Poor projects with major problems
+
+Analysis Areas:
+- TECHNICAL QUALITY: Code organization, best practices, technology choices, architecture
+- USER EXPERIENCE: Design, usability, responsiveness, accessibility, user flow
+- MARKETABILITY: Business value, uniqueness, problem-solving, target audience appeal
+- DOCUMENTATION: README quality, code comments, setup instructions, project explanation
+
+Provide response in this EXACT JSON format:
 
 {
-  "score": number (0-100, overall project score),
-  "impression": "string (2-3 sentences about first impression an interviewer would have)",
-  "strengths": ["array", "of", "specific", "strengths", "found"],
-  "improvements": ["array", "of", "specific", "improvement", "suggestions"],
-  "marketability": number (0-100, how marketable/impressive is this project),
-  "technicalQuality": number (0-100, code quality, architecture, best practices),
-  "userExperience": number (0-100, UI/UX, usability, design),
-  "documentation": number (0-100, README, comments, clarity),
-  "overall": "string (detailed 3-4 sentence overall assessment)"
+  "score": [realistic number 0-100 based on actual analysis],
+  "impression": "[2-3 sentences describing genuine first impression a hiring manager would have]",
+  "strengths": ["[specific strength 1]", "[specific strength 2]", "[specific strength 3]"],
+  "improvements": ["[specific improvement 1]", "[specific improvement 2]", "[specific improvement 3]"],
+  "marketability": [0-100 based on business value and uniqueness],
+  "technicalQuality": [0-100 based on code/architecture visible],
+  "userExperience": [0-100 based on design and usability],
+  "documentation": [0-100 based on README and explanations],
+  "overall": "[3-4 sentences providing detailed assessment covering technical skills, presentation, and career readiness]"
 }
 
-Consider:
-- Technical implementation and code quality
-- User interface and experience design
-- Project complexity and innovation
-- Documentation and presentation
-- Market potential and real-world applicability
-- Professional presentation and portfolio value
-
-Provide honest, constructive feedback that would help improve the project for job interviews and career advancement.`;
+REMEMBER: Scores should reflect REAL analysis, not placeholder values. If you see a basic portfolio with 3 projects, don't score it 85. If you see an innovative full-stack app with great UX, don't underscore it at 65.`;
 
     console.log('Making OpenAI API call for project analysis...');
     
@@ -95,16 +130,16 @@ Provide honest, constructive feedback that would help improve the project for jo
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o',
         messages: [
           { 
             role: 'system', 
-            content: 'You are a senior technical interviewer and project reviewer with expertise in evaluating software projects for hiring decisions. Provide detailed, actionable feedback.' 
+            content: 'You are a senior technical interviewer with 10+ years of experience hiring developers. You provide honest, detailed feedback with realistic scoring based on actual project analysis. You never use placeholder or default scores.' 
           },
           { role: 'user', content: prompt }
         ],
-        temperature: 0.3,
-        max_tokens: 2000,
+        temperature: 0.4,
+        max_tokens: 2500,
       }),
     });
 
@@ -128,7 +163,11 @@ Provide honest, constructive feedback that would help improve the project for jo
     console.log('Raw analysis text:', analysisText);
     
     // Clean up the response text to ensure it's valid JSON
-    const cleanedText = analysisText.trim().replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    const cleanedText = analysisText.trim()
+      .replace(/^```json\s*/, '')
+      .replace(/\s*```$/, '')
+      .replace(/^```\s*/, '')
+      .replace(/\s*```$/, '');
     
     // Parse the JSON response
     let analysisData;
@@ -137,17 +176,45 @@ Provide honest, constructive feedback that would help improve the project for jo
     } catch (parseError) {
       console.error('JSON parse error:', parseError);
       console.error('Cleaned text:', cleanedText);
-      throw new Error('Failed to parse analysis data as JSON');
+      
+      // Try to extract JSON from the response if it's wrapped in other text
+      const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          analysisData = JSON.parse(jsonMatch[0]);
+        } catch (secondParseError) {
+          console.error('Second parse attempt failed:', secondParseError);
+          throw new Error('Failed to parse analysis data as JSON');
+        }
+      } else {
+        throw new Error('No valid JSON found in response');
+      }
     }
 
     console.log('Parsed analysis data:', analysisData);
 
-    // Validate the response structure
+    // Validate the response structure and ensure realistic scoring
     const requiredFields = ['score', 'impression', 'strengths', 'improvements', 'marketability', 'technicalQuality', 'userExperience', 'documentation', 'overall'];
     for (const field of requiredFields) {
       if (!(field in analysisData)) {
         throw new Error(`Missing required field: ${field}`);
       }
+    }
+
+    // Ensure scores are numbers and within valid range
+    const scoreFields = ['score', 'marketability', 'technicalQuality', 'userExperience', 'documentation'];
+    for (const field of scoreFields) {
+      if (typeof analysisData[field] !== 'number' || analysisData[field] < 0 || analysisData[field] > 100) {
+        throw new Error(`Invalid score for field: ${field}`);
+      }
+    }
+
+    // Ensure arrays have content
+    if (!Array.isArray(analysisData.strengths) || analysisData.strengths.length === 0) {
+      throw new Error('Strengths must be a non-empty array');
+    }
+    if (!Array.isArray(analysisData.improvements) || analysisData.improvements.length === 0) {
+      throw new Error('Improvements must be a non-empty array');
     }
 
     return new Response(JSON.stringify(analysisData), {
