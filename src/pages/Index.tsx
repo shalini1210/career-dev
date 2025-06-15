@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,7 @@ import Footer from '@/components/Footer';
 import DownloadModal from '@/components/DownloadModal';
 import SalaryGuide from '@/components/SalaryGuide';
 import ProjectFeedback from '@/components/ProjectFeedback';
+import MockInterviewer from '@/components/MockInterviewer';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -36,6 +36,14 @@ const Index = () => {
       icon: BarChart3,
       color: 'from-blue-500 via-cyan-500 to-teal-500',
       features: ['ATS Score', 'Keyword Analysis', 'Improvement Tips']
+    },
+    {
+      id: 'mock-interviewer',
+      title: 'Mock Interviewer',
+      description: 'Practice interviews with AI-generated questions for your role',
+      icon: MessageSquare,
+      color: 'from-blue-600 via-indigo-600 to-purple-600',
+      features: ['Role-Specific Questions', 'AI Feedback', 'Interview Practice']
     },
     {
       id: 'roadmap-builder',
@@ -126,6 +134,16 @@ const Index = () => {
             transition={{ duration: 0.5 }}
           >
             <ResumeAnalyzer />
+          </motion.div>
+        );
+      case 'mock-interviewer':
+        return (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <MockInterviewer />
           </motion.div>
         );
       case 'roadmap-builder':
@@ -406,7 +424,7 @@ const Index = () => {
                     }`}
                   >
                     <tool.icon className="h-4 w-4 mr-1" />
-                    {tool.title.replace(' Builder', '').replace(' Guide', '')}
+                    {tool.title.replace(' Builder', '').replace(' Guide', '').replace(' Interviewer', ' Interview')}
                   </Button>
                 </motion.div>
               ))}
@@ -458,7 +476,7 @@ const Index = () => {
                 }`}
               >
                 <tool.icon className="h-4 w-4 mr-1" />
-                {tool.title.replace(' Builder', '').replace(' Guide', '')}
+                {tool.title.replace(' Builder', '').replace(' Guide', '').replace(' Interviewer', ' Interview')}
               </Button>
             </motion.div>
           ))}
