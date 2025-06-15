@@ -23,18 +23,59 @@ import ProjectFeedback from "@/components/ProjectFeedback";
 import Testimonials from "@/components/Testimonials";
 import Footer from "@/components/Footer";
 import FloatingElements from "@/components/FloatingElements";
+import AuthForm from "@/components/AuthForm";
 import { Switch } from "@/components/ui/switch";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
+import { User } from "@supabase/supabase-js";
 
 type ActiveTool = 'resume-builder' | 'resume-analyzer' | 'cover-letter' | 'salary-guide' | 'roadmap' | 'project-feedback' | null;
 
 const Index = () => {
   const [activeTool, setActiveTool] = useState<ActiveTool>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    // Check current auth state
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      if (event === 'SIGNED_IN') {
+        setShowAuth(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
     document.documentElement.classList.toggle('dark');
   };
+
+  const handleToolClick = (toolId: ActiveTool) => {
+    if (!user) {
+      setShowAuth(true);
+      return;
+    }
+    setActiveTool(toolId);
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setActiveTool(null);
+  };
+
+  if (showAuth) {
+    return <AuthForm onBack={() => setShowAuth(false)} />;
+  }
 
   if (activeTool) {
     const renderTool = () => {
@@ -66,10 +107,20 @@ const Index = () => {
             >
               ← Back to Tools
             </Button>
-            <div className="flex items-center gap-2">
-              <Sun className="h-4 w-4" />
-              <Switch checked={isDarkMode} onCheckedChange={toggleDarkMode} />
-              <Moon className="h-4 w-4" />
+            <div className="flex items-center gap-4">
+              {user && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Welcome, {user.email}</span>
+                  <Button onClick={handleSignOut} variant="outline" size="sm">
+                    Sign Out
+                  </Button>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <Sun className="h-4 w-4" />
+                <Switch checked={isDarkMode} onCheckedChange={toggleDarkMode} />
+                <Moon className="h-4 w-4" />
+              </div>
             </div>
           </div>
         </div>
@@ -151,7 +202,7 @@ const Index = () => {
       opacity: 1,
       transition: {
         duration: 0.6,
-        ease: [0.4, 0, 0.2, 1]
+        ease: "easeOut"
       }
     }
   };
@@ -163,12 +214,26 @@ const Index = () => {
         {/* Floating Background Elements */}
         <FloatingElements />
 
-        {/* Dark Mode Toggle */}
+        {/* Header with Auth */}
         <div className="absolute top-6 right-6 z-50">
-          <div className="flex items-center gap-3 bg-white/20 dark:bg-black/20 backdrop-blur-md rounded-full p-3 border border-white/30 dark:border-gray-700/30">
-            <Sun className="h-4 w-4 text-yellow-500" />
-            <Switch checked={isDarkMode} onCheckedChange={toggleDarkMode} />
-            <Moon className="h-4 w-4 text-blue-400" />
+          <div className="flex items-center gap-4 bg-white/20 dark:bg-black/20 backdrop-blur-md rounded-full p-3 border border-white/30 dark:border-gray-700/30">
+            {user ? (
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-700 dark:text-gray-300">Welcome, {user.email}</span>
+                <Button onClick={handleSignOut} variant="outline" size="sm" className="bg-white/50 dark:bg-gray-800/50">
+                  Sign Out
+                </Button>
+              </div>
+            ) : (
+              <Button onClick={() => setShowAuth(true)} variant="outline" size="sm" className="bg-white/50 dark:bg-gray-800/50">
+                Sign In
+              </Button>
+            )}
+            <div className="flex items-center gap-2">
+              <Sun className="h-4 w-4 text-yellow-500" />
+              <Switch checked={isDarkMode} onCheckedChange={toggleDarkMode} />
+              <Moon className="h-4 w-4 text-blue-400" />
+            </div>
           </div>
         </div>
 
@@ -177,7 +242,7 @@ const Index = () => {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: [0.4, 0, 0.2, 1] }}
+            transition={{ duration: 1, ease: "easeOut" }}
             className="max-w-4xl mx-auto"
           >
             <motion.div
@@ -187,7 +252,7 @@ const Index = () => {
               className="mb-8"
             >
               <h1 className="text-6xl md:text-7xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-6 leading-tight">
-                AI-Powered Career Tools
+                CareerCraft Pro
               </h1>
             </motion.div>
             
@@ -198,7 +263,7 @@ const Index = () => {
               className="text-xl text-gray-700 dark:text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed"
             >
               Transform your career with our comprehensive suite of AI-powered tools. 
-              Build resumes, get feedback, create cover letters, and accelerate your professional growth.
+              {user ? "Welcome back! Choose a tool to continue your career journey." : "Sign up to unlock all premium features and accelerate your professional growth."}
             </motion.p>
 
             <motion.div
@@ -216,6 +281,11 @@ const Index = () => {
               <div className="px-4 py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-full border border-white/40 dark:border-gray-700/40 text-sm font-medium text-gray-700 dark:text-gray-300">
                 💼 Professional
               </div>
+              {user && (
+                <div className="px-4 py-2 bg-green-500/20 backdrop-blur-sm rounded-full border border-green-400/40 text-sm font-medium text-green-700 dark:text-green-300">
+                  ✅ Premium Access
+                </div>
+              )}
             </motion.div>
           </motion.div>
         </section>
@@ -229,7 +299,7 @@ const Index = () => {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-4xl font-bold text-center bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent mb-4"
             >
-              Choose Your Career Tool
+              {user ? "Choose Your Career Tool" : "Premium Career Tools"}
             </motion.h2>
             
             <motion.p
@@ -238,7 +308,7 @@ const Index = () => {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="text-center text-gray-600 dark:text-gray-400 mb-12 text-lg"
             >
-              Professional tools designed to elevate your career journey
+              {user ? "Professional tools designed to elevate your career journey" : "Sign up to unlock all features and start your career transformation"}
             </motion.p>
             
             <motion.div
@@ -260,8 +330,15 @@ const Index = () => {
                     }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <Card className="h-full hover:shadow-2xl transition-all duration-500 cursor-pointer group bg-white/70 dark:bg-gray-800/70 backdrop-blur-md border-white/40 dark:border-gray-700/40 overflow-hidden"
-                          onClick={() => setActiveTool(tool.id)}>
+                    <Card className="h-full hover:shadow-2xl transition-all duration-500 cursor-pointer group bg-white/70 dark:bg-gray-800/70 backdrop-blur-md border-white/40 dark:border-gray-700/40 overflow-hidden relative"
+                          onClick={() => handleToolClick(tool.id)}>
+                      {!user && (
+                        <div className="absolute inset-0 bg-black/5 dark:bg-white/5 backdrop-blur-[1px] z-10 flex items-center justify-center">
+                          <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">🔒 Premium Feature</p>
+                          </div>
+                        </div>
+                      )}
                       <div className={`h-2 bg-gradient-to-r ${tool.gradient} group-hover:h-3 transition-all duration-300`} />
                       <CardHeader className="text-center relative">
                         <motion.div 
@@ -282,7 +359,7 @@ const Index = () => {
                         <Button 
                           className={`w-full bg-gradient-to-r ${tool.gradient} ${tool.hoverGradient} text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1`}
                         >
-                          Get Started
+                          {user ? "Get Started" : "Sign Up to Access"}
                         </Button>
                       </CardContent>
                     </Card>
