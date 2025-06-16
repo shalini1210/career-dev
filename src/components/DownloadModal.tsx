@@ -4,16 +4,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Download, FileText, Image, File } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useToast } from '@/hooks/use-toast';
 
 interface DownloadModalProps {
   isOpen: boolean;
   onClose: () => void;
   documentType: string;
+  content?: string;
 }
 
-const DownloadModal = ({ isOpen, onClose, documentType }: DownloadModalProps) => {
+const DownloadModal = ({ isOpen, onClose, documentType, content }: DownloadModalProps) => {
   const [selectedFormat, setSelectedFormat] = useState('pdf');
   const [isDownloading, setIsDownloading] = useState(false);
+  const { toast } = useToast();
 
   const formats = [
     { 
@@ -31,6 +34,13 @@ const DownloadModal = ({ isOpen, onClose, documentType }: DownloadModalProps) =>
       color: 'from-blue-500 to-cyan-500'
     },
     { 
+      id: 'txt', 
+      name: 'Text File', 
+      icon: FileText, 
+      description: 'Simple text format',
+      color: 'from-gray-500 to-gray-600'
+    },
+    { 
       id: 'png', 
       name: 'PNG Image', 
       icon: Image, 
@@ -39,15 +49,159 @@ const DownloadModal = ({ isOpen, onClose, documentType }: DownloadModalProps) =>
     }
   ];
 
+  const downloadAsTextFile = (content: string, filename: string) => {
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const generatePDFContent = (content: string) => {
+    // Create a simple HTML content for PDF conversion
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>${documentType}</title>
+          <style>
+            body { 
+              font-family: Arial, sans-serif; 
+              line-height: 1.6; 
+              margin: 40px; 
+              color: #333;
+            }
+            .header {
+              text-align: center;
+              margin-bottom: 30px;
+              border-bottom: 2px solid #333;
+              padding-bottom: 20px;
+            }
+            .content {
+              white-space: pre-line;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>${documentType}</h1>
+          </div>
+          <div class="content">${content}</div>
+        </body>
+      </html>
+    `;
+    
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${documentType.toLowerCase().replace(/\s+/g, '-')}.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const handleDownload = async () => {
+    if (!content) {
+      toast({
+        title: "No content to download",
+        description: "Please generate content first before downloading.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsDownloading(true);
     
-    // Simulate download process
-    setTimeout(() => {
+    try {
+      const filename = `${documentType.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
+      
+      switch (selectedFormat) {
+        case 'txt':
+          downloadAsTextFile(content, `${filename}.txt`);
+          break;
+        case 'pdf':
+          // For now, we'll download as HTML which can be converted to PDF
+          generatePDFContent(content);
+          break;
+        case 'docx':
+          // Download as rich text format that can be opened in Word
+          const rtfContent = `{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Times New Roman;}} \\f0\\fs24 ${content.replace(/\n/g, '\\par ')}}`;
+          const blob = new Blob([rtfContent], { type: 'application/rtf' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `${filename}.rtf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          break;
+        case 'png':
+          // Create a canvas with the text content
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = 800;
+          canvas.height = 1000;
+          
+          if (ctx) {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'black';
+            ctx.font = '14px Arial';
+            
+            const lines = content.split('\n');
+            let y = 40;
+            lines.forEach(line => {
+              if (y < canvas.height - 20) {
+                ctx.fillText(line, 40, y);
+                y += 20;
+              }
+            });
+            
+            canvas.toBlob((blob) => {
+              if (blob) {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `${filename}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+              }
+            });
+          }
+          break;
+        default:
+          downloadAsTextFile(content, `${filename}.txt`);
+      }
+
+      toast({
+        title: "Download started",
+        description: `Your ${documentType.toLowerCase()} is being downloaded as ${selectedFormat.toUpperCase()}.`,
+      });
+
+      setTimeout(() => {
+        setIsDownloading(false);
+        onClose();
+      }, 1000);
+
+    } catch (error) {
+      console.error('Download error:', error);
+      toast({
+        title: "Download failed",
+        description: "There was an error downloading your file. Please try again.",
+        variant: "destructive",
+      });
       setIsDownloading(false);
-      onClose();
-      alert(`${documentType} downloaded as ${selectedFormat.toUpperCase()}!`);
-    }, 2000);
+    }
   };
 
   const containerVariants = {

@@ -175,80 +175,78 @@ ${formData.yourPhone || '(555) 123-4567'}`;
         </TabsList>
 
         <TabsContent value="form" className="space-y-6">
-          <div className="grid lg:grid-cols-2 gap-6">
-            {/* Personal Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="your-name">Your Full Name</Label>
-                  <Input
-                    id="your-name"
-                    value={formData.yourName}
-                    onChange={(e) => updateField('yourName', e.target.value)}
-                    placeholder="John Doe"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="your-email">Your Email</Label>
-                  <Input
-                    id="your-email"
-                    type="email"
-                    value={formData.yourEmail}
-                    onChange={(e) => updateField('yourEmail', e.target.value)}
-                    placeholder="john@example.com"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="your-phone">Your Phone</Label>
-                  <Input
-                    id="your-phone"
-                    value={formData.yourPhone}
-                    onChange={(e) => updateField('yourPhone', e.target.value)}
-                    placeholder="(555) 123-4567"
-                  />
-                </div>
-              </CardContent>
-            </Card>
+          {/* Personal Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Your Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="your-name">Your Full Name</Label>
+                <Input
+                  id="your-name"
+                  value={formData.yourName}
+                  onChange={(e) => updateField('yourName', e.target.value)}
+                  placeholder="John Doe"
+                />
+              </div>
+              <div>
+                <Label htmlFor="your-email">Your Email</Label>
+                <Input
+                  id="your-email"
+                  type="email"
+                  value={formData.yourEmail}
+                  onChange={(e) => updateField('yourEmail', e.target.value)}
+                  placeholder="john@example.com"
+                />
+              </div>
+              <div>
+                <Label htmlFor="your-phone">Your Phone</Label>
+                <Input
+                  id="your-phone"
+                  value={formData.yourPhone}
+                  onChange={(e) => updateField('yourPhone', e.target.value)}
+                  placeholder="(555) 123-4567"
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Job Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Job Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="company-name">Company Name</Label>
-                  <Input
-                    id="company-name"
-                    value={formData.companyName}
-                    onChange={(e) => updateField('companyName', e.target.value)}
-                    placeholder="Acme Corporation"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="position">Position Title</Label>
-                  <Input
-                    id="position"
-                    value={formData.position}
-                    onChange={(e) => updateField('position', e.target.value)}
-                    placeholder="Software Engineer"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="recipient-name">Hiring Manager Name (Optional)</Label>
-                  <Input
-                    id="recipient-name"
-                    value={formData.recipientName}
-                    onChange={(e) => updateField('recipientName', e.target.value)}
-                    placeholder="Jane Smith"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          {/* Job Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Job Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="company-name">Company Name</Label>
+                <Input
+                  id="company-name"
+                  value={formData.companyName}
+                  onChange={(e) => updateField('companyName', e.target.value)}
+                  placeholder="Acme Corporation"
+                />
+              </div>
+              <div>
+                <Label htmlFor="position">Position Title</Label>
+                <Input
+                  id="position"
+                  value={formData.position}
+                  onChange={(e) => updateField('position', e.target.value)}
+                  placeholder="Software Engineer"
+                />
+              </div>
+              <div>
+                <Label htmlFor="recipient-name">Hiring Manager Name (Optional)</Label>
+                <Input
+                  id="recipient-name"
+                  value={formData.recipientName}
+                  onChange={(e) => updateField('recipientName', e.target.value)}
+                  placeholder="Jane Smith"
+                />
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Content Customization */}
           <div className="space-y-6">
@@ -383,6 +381,7 @@ ${formData.yourPhone || '(555) 123-4567'}`;
         isOpen={showDownloadModal}
         onClose={() => setShowDownloadModal(false)}
         documentType="Cover Letter"
+        content={generatedLetter}
       />
     </div>
   );
