@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Download, FileText, Image, File } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
+import jsPDF from 'jspdf';
 
 interface DownloadModalProps {
   isOpen: boolean;
@@ -61,50 +62,52 @@ const DownloadModal = ({ isOpen, onClose, documentType, content }: DownloadModal
     URL.revokeObjectURL(url);
   };
 
-  const generatePDFContent = (content: string) => {
-    // Create a simple HTML content for PDF conversion
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <title>${documentType}</title>
-          <style>
-            body { 
-              font-family: Arial, sans-serif; 
-              line-height: 1.6; 
-              margin: 40px; 
-              color: #333;
-            }
-            .header {
-              text-align: center;
-              margin-bottom: 30px;
-              border-bottom: 2px solid #333;
-              padding-bottom: 20px;
-            }
-            .content {
-              white-space: pre-line;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>${documentType}</h1>
-          </div>
-          <div class="content">${content}</div>
-        </body>
-      </html>
-    `;
-    
-    const blob = new Blob([htmlContent], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${documentType.toLowerCase().replace(/\s+/g, '-')}.html`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+  const generatePDF = (content: string, filename: string) => {
+    try {
+      const pdf = new jsPDF();
+      const pageHeight = pdf.internal.pageSize.height;
+      const pageWidth = pdf.internal.pageSize.width;
+      const margin = 20;
+      const lineHeight = 7;
+      const maxLineWidth = pageWidth - 2 * margin;
+      
+      // Add title
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(documentType, margin, margin + 10);
+      
+      // Add content
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'normal');
+      
+      const lines = content.split('\n');
+      let currentY = margin + 30;
+      
+      lines.forEach((line) => {
+        if (line.trim() === '') {
+          currentY += lineHeight;
+          return;
+        }
+        
+        // Split long lines
+        const splitLines = pdf.splitTextToSize(line, maxLineWidth);
+        
+        splitLines.forEach((splitLine: string) => {
+          if (currentY > pageHeight - margin) {
+            pdf.addPage();
+            currentY = margin;
+          }
+          
+          pdf.text(splitLine, margin, currentY);
+          currentY += lineHeight;
+        });
+      });
+      
+      pdf.save(filename);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      throw error;
+    }
   };
 
   const handleDownload = async () => {
@@ -127,8 +130,7 @@ const DownloadModal = ({ isOpen, onClose, documentType, content }: DownloadModal
           downloadAsTextFile(content, `${filename}.txt`);
           break;
         case 'pdf':
-          // For now, we'll download as HTML which can be converted to PDF
-          generatePDFContent(content);
+          generatePDF(content, `${filename}.pdf`);
           break;
         case 'docx':
           // Download as rich text format that can be opened in Word
