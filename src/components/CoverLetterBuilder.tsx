@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Mail, Download, Eye, Wand2, Copy, CheckCircle } from 'lucide-react';
 import DownloadModal from '@/components/DownloadModal';
+import { useToast } from '@/hooks/use-toast';
 
 interface CoverLetterData {
   recipientName: string;
@@ -41,6 +42,7 @@ const CoverLetterBuilder = () => {
   const [activeTab, setActiveTab] = useState('form');
   const [copied, setCopied] = useState(false);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const { toast } = useToast();
 
   const tones = [
     { value: 'professional', label: 'Professional' },
@@ -90,9 +92,18 @@ ${formData.yourPhone || '(555) 123-4567'}`;
     try {
       await navigator.clipboard.writeText(generatedLetter);
       setCopied(true);
+      toast({
+        title: "Copied!",
+        description: "Cover letter copied to clipboard.",
+      });
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error('Failed to copy text: ', err);
+      toast({
+        title: "Error",
+        description: "Failed to copy text to clipboard.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -113,10 +124,34 @@ ${formData.yourPhone || '(555) 123-4567'}`;
 
   const handleDownload = () => {
     if (!generatedLetter) {
-      alert('Please generate a cover letter first before downloading.');
+      toast({
+        title: "No letter to download",
+        description: "Please generate a cover letter first before downloading.",
+        variant: "destructive",
+      });
       return;
     }
+    console.log('Opening download modal for cover letter');
     setShowDownloadModal(true);
+  };
+
+  const downloadAsTextFile = () => {
+    if (!generatedLetter) return;
+    
+    const blob = new Blob([generatedLetter], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `cover-letter-${formData.companyName || 'company'}-${formData.position || 'position'}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Download started",
+      description: "Your cover letter is being downloaded as a text file.",
+    });
   };
 
   return (
@@ -312,9 +347,13 @@ ${formData.yourPhone || '(555) 123-4567'}`;
                       </>
                     )}
                   </Button>
+                  <Button onClick={downloadAsTextFile} variant="outline">
+                    <Download className="mr-2 h-4 w-4" />
+                    Quick Download (.txt)
+                  </Button>
                   <Button onClick={handleDownload} className="bg-green-600 hover:bg-green-700">
                     <Download className="mr-2 h-4 w-4" />
-                    Download Letter
+                    Download Options
                   </Button>
                 </div>
               </div>
