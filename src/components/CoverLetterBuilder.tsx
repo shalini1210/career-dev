@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Mail, Download, Eye, Wand2, Copy, CheckCircle } from 'lucide-react';
+import DownloadModal from '@/components/DownloadModal';
 
 interface CoverLetterData {
   recipientName: string;
@@ -40,6 +40,7 @@ const CoverLetterBuilder = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeTab, setActiveTab] = useState('form');
   const [copied, setCopied] = useState(false);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
 
   const tones = [
     { value: 'professional', label: 'Professional' },
@@ -108,6 +109,14 @@ ${formData.yourPhone || '(555) 123-4567'}`;
       experience: 'software development with 5+ years of experience in full-stack development',
       motivation: 'I am excited about the opportunity to work on cutting-edge projects and contribute to a company that values innovation and teamwork.'
     });
+  };
+
+  const handleDownload = () => {
+    if (!generatedLetter) {
+      alert('Please generate a cover letter first before downloading.');
+      return;
+    }
+    setShowDownloadModal(true);
   };
 
   return (
@@ -303,9 +312,9 @@ ${formData.yourPhone || '(555) 123-4567'}`;
                       </>
                     )}
                   </Button>
-                  <Button onClick={() => window.print()} className="bg-green-600 hover:bg-green-700">
+                  <Button onClick={handleDownload} className="bg-green-600 hover:bg-green-700">
                     <Download className="mr-2 h-4 w-4" />
-                    Download PDF
+                    Download Letter
                   </Button>
                 </div>
               </div>
@@ -329,6 +338,13 @@ ${formData.yourPhone || '(555) 123-4567'}`;
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Download Modal */}
+      <DownloadModal 
+        isOpen={showDownloadModal}
+        onClose={() => setShowDownloadModal(false)}
+        documentType="Cover Letter"
+      />
     </div>
   );
 };
