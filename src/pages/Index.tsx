@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ import CoverLetterBuilder from "@/components/CoverLetterBuilder";
 import SalaryGuide from "@/components/SalaryGuide";
 import RoadmapBuilder from "@/components/RoadmapBuilder";
 import ProjectFeedback from "@/components/ProjectFeedback";
+import PortfolioBuilder from "@/components/PortfolioBuilder";
 import Testimonials from "@/components/Testimonials";
 import Footer from "@/components/Footer";
 import FloatingElements from "@/components/FloatingElements";
