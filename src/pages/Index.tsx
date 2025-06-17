@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -30,7 +29,7 @@ import { useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
-type ActiveTool = 'resume-builder' | 'resume-analyzer' | 'cover-letter' | 'salary-guide' | 'roadmap' | 'project-feedback' | null;
+type ActiveTool = 'resume-builder' | 'resume-analyzer' | 'cover-letter' | 'salary-guide' | 'roadmap' | 'project-feedback' | 'portfolio-builder' | null;
 
 const Index = () => {
   const [activeTool, setActiveTool] = useState<ActiveTool>(null);
@@ -110,6 +109,8 @@ const Index = () => {
           return <RoadmapBuilder />;
         case 'project-feedback':
           return <ProjectFeedback />;
+        case 'portfolio-builder':
+          return <PortfolioBuilder />;
         default:
           return null;
       }
@@ -199,6 +200,14 @@ const Index = () => {
       icon: Briefcase,
       gradient: "from-teal-500 via-cyan-500 to-blue-500",
       hoverGradient: "hover:from-teal-600 hover:via-cyan-600 hover:to-blue-600"
+    },
+    {
+      id: 'portfolio-builder' as ActiveTool,
+      title: "Portfolio Builder",
+      description: "Create a stunning professional portfolio website",
+      icon: Briefcase,
+      gradient: "from-pink-500 via-rose-500 to-orange-500",
+      hoverGradient: "hover:from-pink-600 hover:via-rose-600 hover:to-orange-600"
     }
   ];
 
